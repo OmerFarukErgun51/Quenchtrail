@@ -1,0 +1,21 @@
+# Godot
+.godot/
+.import/
+export.cfg
+export_presets.cfg
+*.translation
+
+# Build / export output
+build/
+exports/
+*.apk
+*.aab
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Superpowers brainstorm (yerel, repoya girmez)
+.superpowers/

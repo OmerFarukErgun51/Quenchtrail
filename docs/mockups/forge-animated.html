@@ -1,0 +1,192 @@
+<h2>Dövme Sahnesi — animasyonlu akış</h2>
+<p class="subtitle">Form/gösterge yok. Usta malzemeyi potaya atar → eritir → kalıba döker → döver → soğutur → kılıç hazır. (Otomatik oynuyor)</p>
+
+<style>
+  .forge-wrap{max-width:400px;margin:0 auto;font-family:system-ui,sans-serif}
+  .scene{position:relative;height:300px;background:
+     radial-gradient(120% 90% at 50% 120%, #4a2a14 0%, #2a1710 55%, #160d08 100%);
+     border:5px solid #3a2616;border-radius:18px;overflow:hidden}
+  .scene .floor{position:absolute;left:0;right:0;bottom:0;height:46px;background:#20140c;border-top:2px solid #3a2616}
+  .layer{position:absolute;inset:0;opacity:0;transform:translateY(8px);
+     transition:opacity .45s ease, transform .45s ease;display:flex;align-items:center;justify-content:center}
+  .layer.active{opacity:1;transform:none}
+  .big{font-size:84px;line-height:1;filter:drop-shadow(0 6px 10px rgba(0,0,0,.5))}
+
+  /* crucible */
+  .pota{width:120px;height:92px;position:relative}
+  .pota .cup{position:absolute;bottom:0;width:120px;height:72px;background:linear-gradient(#5a3c22,#2e1d10);
+     border-radius:0 0 50% 50%/0 0 70% 70%;border:4px solid #7a5230;border-top:none}
+  .pota .rim{position:absolute;top:0;width:120px;height:26px;background:#3a2614;border:4px solid #7a5230;border-radius:12px}
+  .slot{position:absolute;top:4px;width:22px;height:16px;background:#160d08;border:2px solid #7a5230;border-radius:5px}
+  .slot.s1{left:12px}.slot.s2{left:49px}.slot.s3{left:86px}
+  .molten{position:absolute;top:14px;left:18px;width:84px;height:16px;border-radius:50%;
+     background:radial-gradient(#ffe39a,#ff9b2a 60%,#e0561a);box-shadow:0 0 22px #ff8a2a;opacity:0}
+  .active .molten{opacity:1;animation:bubble 1.1s infinite ease-in-out}
+  @keyframes bubble{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.25)}}
+
+  /* dropping materials */
+  .drop{position:absolute;font-size:26px;top:-40px;opacity:0}
+  .active .drop{animation:dropin 1s ease-in forwards}
+  .drop.d1{left:40px;animation-delay:.1s}
+  .drop.d2{left:92px;animation-delay:.45s}
+  .drop.d3{left:140px;animation-delay:.8s}
+  @keyframes dropin{0%{top:-40px;opacity:1}70%{top:70px;opacity:1}100%{top:80px;opacity:0}}
+
+  /* pour */
+  .pourbox{position:relative;width:240px;height:150px}
+  .pota-tilt{position:absolute;left:0;top:0;font-size:54px;transform-origin:bottom right}
+  .active .pota-tilt{animation:tilt 2s ease-in-out}
+  @keyframes tilt{0%{transform:rotate(0)}30%,70%{transform:rotate(38deg)}100%{transform:rotate(0)}}
+  .stream{position:absolute;left:70px;top:46px;width:6px;height:0;
+     background:linear-gradient(#ffe39a,#ff8a2a);border-radius:4px;box-shadow:0 0 12px #ff8a2a}
+  .active .stream{animation:pourflow 2s ease-in-out}
+  @keyframes pourflow{0%,20%{height:0}35%,70%{height:64px}100%{height:0}}
+  .mold{position:absolute;right:16px;bottom:8px;width:120px;height:34px;background:#241710;border:3px solid #6b4a2a;border-radius:7px;overflow:hidden}
+  .mold .blade{position:absolute;left:8px;top:8px;width:0;height:16px;border-radius:4px;background:linear-gradient(90deg,#ffd98a,#ff8a2a)}
+  .active .mold .blade{animation:fillmold 2s ease-in-out}
+  @keyframes fillmold{0%,30%{width:0}75%,100%{width:100px}}
+
+  /* hammer */
+  .anvil-box{position:relative;width:220px;height:150px}
+  .anvil{position:absolute;left:60px;bottom:6px;font-size:66px}
+  .blade-hot{position:absolute;left:66px;bottom:92px;font-size:40px;transform:rotate(-12deg);
+     filter:drop-shadow(0 0 10px #ff8a2a)}
+  .hammer{position:absolute;left:112px;bottom:96px;font-size:46px;transform-origin:bottom left}
+  .active .hammer{animation:swing .6s infinite ease-in-out}
+  @keyframes swing{0%,100%{transform:rotate(-55deg)}45%{transform:rotate(10deg)}55%{transform:rotate(6deg)}}
+  .spark{position:absolute;left:92px;bottom:96px;font-size:22px;opacity:0}
+  .active .spark{animation:spark .6s infinite ease-out}
+  @keyframes spark{0%,44%{opacity:0;transform:scale(.4)}55%{opacity:1;transform:scale(1.2) translateY(-6px)}100%{opacity:0;transform:scale(.6) translateY(-16px)}}
+
+  /* cool */
+  .trough{position:relative;width:200px;height:150px}
+  .water{position:absolute;left:30px;bottom:10px;width:140px;height:42px;background:linear-gradient(#2e6fb0,#1b4a7e);
+     border:3px solid #6b4a2a;border-radius:8px;overflow:hidden}
+  .water::after{content:"";position:absolute;left:0;right:0;top:4px;height:4px;background:#5aa6e0;opacity:.6;animation:ripple 1.4s infinite}
+  @keyframes ripple{0%,100%{transform:translateX(-6px)}50%{transform:translateX(6px)}}
+  .dipblade{position:absolute;left:92px;bottom:30px;font-size:40px;transform:rotate(90deg)}
+  .active .dipblade{animation:dip 2s ease-in-out}
+  @keyframes dip{0%{bottom:90px}40%,60%{bottom:14px}100%{bottom:90px}}
+  .steam{position:absolute;left:96px;bottom:46px;font-size:26px;opacity:0}
+  .active .steam{animation:steam 2s ease-out}
+  @keyframes steam{0%,35%{opacity:0}45%{opacity:.9;transform:translateY(0)}100%{opacity:0;transform:translateY(-40px)}}
+
+  /* reveal */
+  .reveal{flex-direction:column;gap:8px}
+  .sword{font-size:90px;transform:rotate(-30deg);filter:drop-shadow(0 0 16px #ffd98a)}
+  .active .sword{animation:pop .7s ease-out, shine 2.4s .7s}
+  @keyframes pop{0%{transform:rotate(-30deg) scale(.3);opacity:0}70%{transform:rotate(-30deg) scale(1.15)}100%{transform:rotate(-30deg) scale(1)}}
+  .done-txt{font-weight:800;color:#ffd54a;letter-spacing:1px;text-shadow:0 2px 6px #000}
+  .stars{font-size:22px;letter-spacing:4px}
+
+  /* caption + steps */
+  .caption{text-align:center;margin:12px 0 4px;font-weight:800;color:#f4a93a;font-size:16px}
+  .steps{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:10px}
+  .step{font-size:11px;font-weight:700;color:#9a7b58;background:#241710;border:1px solid #3a2614;
+     border-radius:20px;padding:4px 10px}
+  .step.on{color:#1b120c;background:#f4a93a;border-color:#f4a93a}
+  .controls{text-align:center}
+  .ctrl{display:inline-block;background:#3a2614;border:1px solid #6b4a2a;color:#ffcf8a;
+     border-radius:9px;padding:7px 14px;font-weight:700;cursor:pointer;font-size:13px}
+  .note{text-align:center;color:#9a7b58;font-size:12px;margin-top:14px;line-height:1.5}
+</style>
+
+<div class="forge-wrap">
+  <div class="scene" id="scene">
+    <div class="floor"></div>
+
+    <!-- 1: POTA + drop -->
+    <div class="layer" data-i="0">
+      <div class="pota">
+        <div class="rim"></div>
+        <div class="slot s1"></div><div class="slot s2"></div><div class="slot s3"></div>
+        <div class="cup"></div>
+        <div class="drop d1">⬜</div><div class="drop d2">⚫</div><div class="drop d3">🔴</div>
+      </div>
+    </div>
+
+    <!-- 2: ERİT -->
+    <div class="layer" data-i="1">
+      <div class="pota">
+        <div class="rim"></div>
+        <div class="slot s1"></div><div class="slot s2"></div><div class="slot s3"></div>
+        <div class="cup" style="box-shadow:0 0 30px #ff8a2a inset"></div>
+        <div class="molten"></div>
+      </div>
+    </div>
+
+    <!-- 3: KALIBA DÖK -->
+    <div class="layer" data-i="2">
+      <div class="pourbox">
+        <div class="pota-tilt">🫕</div>
+        <div class="stream"></div>
+        <div class="mold"><div class="blade"></div></div>
+      </div>
+    </div>
+
+    <!-- 4: DÖV -->
+    <div class="layer" data-i="3">
+      <div class="anvil-box">
+        <div class="blade-hot">🗡️</div>
+        <div class="spark">✨</div>
+        <div class="hammer">🔨</div>
+        <div class="anvil">⚒️</div>
+      </div>
+    </div>
+
+    <!-- 5: SOĞUT -->
+    <div class="layer" data-i="4">
+      <div class="trough">
+        <div class="steam">💨</div>
+        <div class="dipblade">🗡️</div>
+        <div class="water"></div>
+      </div>
+    </div>
+
+    <!-- 6: KILIÇ -->
+    <div class="layer reveal" data-i="5">
+      <div class="sword">⚔️</div>
+      <div class="done-txt">AL SANA KILIÇ!</div>
+      <div class="stars">⭐⭐⭐</div>
+    </div>
+  </div>
+
+  <div class="caption" id="cap">Malzemeyi potaya at</div>
+  <div class="steps" id="steps">
+    <span class="step">1 · Potaya at</span>
+    <span class="step">2 · Erit</span>
+    <span class="step">3 · Kalıba dök</span>
+    <span class="step">4 · Döv</span>
+    <span class="step">5 · Soğut</span>
+    <span class="step">6 · Kılıç!</span>
+  </div>
+  <div class="controls"><span class="ctrl" onclick="playForge(true)">▶ Baştan oynat</span></div>
+
+  <div class="note">
+    Fikir bu: her aşama oyuncunun <b>fiziksel bir hareketiyle</b> olur (malzemeyi sürükle-at, körüğü pompala, ritimle çekiçle vur, suya daldır),
+    ekranda da canlı canlı görünür. Gösterge/form yok.<br>
+    Akış doğru mu? Eksik/fazla aşama var mı?
+  </div>
+</div>
+
+<script>
+(function(){
+  var caps=["Malzemeyi potaya at","Erit (pota kızarır, metal erir)","Kalıba dök","Döv (ritimle çekiçle)","Suya daldır, soğut","Kılıç hazır! Kalite belli olur"];
+  var durs=[2200,2000,2400,2600,2400,2800];
+  var layers, steps, cap, i=0, t=null;
+  function show(n){
+    layers.forEach(function(l){l.classList.toggle("active", +l.dataset.i===n);});
+    steps.forEach(function(s,k){s.classList.toggle("on",k===n);});
+    cap.textContent=caps[n];
+  }
+  function tick(){ show(i); t=setTimeout(function(){ i=(i+1)%6; tick(); }, durs[i]); }
+  window.playForge=function(reset){ if(t)clearTimeout(t); if(reset)i=0; tick(); };
+  function init(){
+    layers=[].slice.call(document.querySelectorAll(".layer"));
+    steps=[].slice.call(document.querySelectorAll("#steps .step"));
+    cap=document.getElementById("cap");
+    playForge(true);
+  }
+  if(document.readyState!=="loading")init(); else document.addEventListener("DOMContentLoaded",init);
+})();
+</script>
