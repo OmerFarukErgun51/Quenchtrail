@@ -1,192 +1,1913 @@
-<h2>Dövme Sahnesi — animasyonlu akış</h2>
-<p class="subtitle">Form/gösterge yok. Usta malzemeyi potaya atar → eritir → kalıba döker → döver → soğutur → kılıç hazır. (Otomatik oynuyor)</p>
-
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Demir Usta — Dövme Prototipi</title>
 <style>
-  .forge-wrap{max-width:400px;margin:0 auto;font-family:system-ui,sans-serif}
-  .scene{position:relative;height:300px;background:
-     radial-gradient(120% 90% at 50% 120%, #4a2a14 0%, #2a1710 55%, #160d08 100%);
-     border:5px solid #3a2616;border-radius:18px;overflow:hidden}
-  .scene .floor{position:absolute;left:0;right:0;bottom:0;height:46px;background:#20140c;border-top:2px solid #3a2616}
-  .layer{position:absolute;inset:0;opacity:0;transform:translateY(8px);
-     transition:opacity .45s ease, transform .45s ease;display:flex;align-items:center;justify-content:center}
-  .layer.active{opacity:1;transform:none}
-  .big{font-size:84px;line-height:1;filter:drop-shadow(0 6px 10px rgba(0,0,0,.5))}
-
-  /* crucible */
-  .pota{width:120px;height:92px;position:relative}
-  .pota .cup{position:absolute;bottom:0;width:120px;height:72px;background:linear-gradient(#5a3c22,#2e1d10);
-     border-radius:0 0 50% 50%/0 0 70% 70%;border:4px solid #7a5230;border-top:none}
-  .pota .rim{position:absolute;top:0;width:120px;height:26px;background:#3a2614;border:4px solid #7a5230;border-radius:12px}
-  .slot{position:absolute;top:4px;width:22px;height:16px;background:#160d08;border:2px solid #7a5230;border-radius:5px}
-  .slot.s1{left:12px}.slot.s2{left:49px}.slot.s3{left:86px}
-  .molten{position:absolute;top:14px;left:18px;width:84px;height:16px;border-radius:50%;
-     background:radial-gradient(#ffe39a,#ff9b2a 60%,#e0561a);box-shadow:0 0 22px #ff8a2a;opacity:0}
-  .active .molten{opacity:1;animation:bubble 1.1s infinite ease-in-out}
-  @keyframes bubble{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.25)}}
-
-  /* dropping materials */
-  .drop{position:absolute;font-size:26px;top:-40px;opacity:0}
-  .active .drop{animation:dropin 1s ease-in forwards}
-  .drop.d1{left:40px;animation-delay:.1s}
-  .drop.d2{left:92px;animation-delay:.45s}
-  .drop.d3{left:140px;animation-delay:.8s}
-  @keyframes dropin{0%{top:-40px;opacity:1}70%{top:70px;opacity:1}100%{top:80px;opacity:0}}
-
-  /* pour */
-  .pourbox{position:relative;width:240px;height:150px}
-  .pota-tilt{position:absolute;left:0;top:0;font-size:54px;transform-origin:bottom right}
-  .active .pota-tilt{animation:tilt 2s ease-in-out}
-  @keyframes tilt{0%{transform:rotate(0)}30%,70%{transform:rotate(38deg)}100%{transform:rotate(0)}}
-  .stream{position:absolute;left:70px;top:46px;width:6px;height:0;
-     background:linear-gradient(#ffe39a,#ff8a2a);border-radius:4px;box-shadow:0 0 12px #ff8a2a}
-  .active .stream{animation:pourflow 2s ease-in-out}
-  @keyframes pourflow{0%,20%{height:0}35%,70%{height:64px}100%{height:0}}
-  .mold{position:absolute;right:16px;bottom:8px;width:120px;height:34px;background:#241710;border:3px solid #6b4a2a;border-radius:7px;overflow:hidden}
-  .mold .blade{position:absolute;left:8px;top:8px;width:0;height:16px;border-radius:4px;background:linear-gradient(90deg,#ffd98a,#ff8a2a)}
-  .active .mold .blade{animation:fillmold 2s ease-in-out}
-  @keyframes fillmold{0%,30%{width:0}75%,100%{width:100px}}
-
-  /* hammer */
-  .anvil-box{position:relative;width:220px;height:150px}
-  .anvil{position:absolute;left:60px;bottom:6px;font-size:66px}
-  .blade-hot{position:absolute;left:66px;bottom:92px;font-size:40px;transform:rotate(-12deg);
-     filter:drop-shadow(0 0 10px #ff8a2a)}
-  .hammer{position:absolute;left:112px;bottom:96px;font-size:46px;transform-origin:bottom left}
-  .active .hammer{animation:swing .6s infinite ease-in-out}
-  @keyframes swing{0%,100%{transform:rotate(-55deg)}45%{transform:rotate(10deg)}55%{transform:rotate(6deg)}}
-  .spark{position:absolute;left:92px;bottom:96px;font-size:22px;opacity:0}
-  .active .spark{animation:spark .6s infinite ease-out}
-  @keyframes spark{0%,44%{opacity:0;transform:scale(.4)}55%{opacity:1;transform:scale(1.2) translateY(-6px)}100%{opacity:0;transform:scale(.6) translateY(-16px)}}
-
-  /* cool */
-  .trough{position:relative;width:200px;height:150px}
-  .water{position:absolute;left:30px;bottom:10px;width:140px;height:42px;background:linear-gradient(#2e6fb0,#1b4a7e);
-     border:3px solid #6b4a2a;border-radius:8px;overflow:hidden}
-  .water::after{content:"";position:absolute;left:0;right:0;top:4px;height:4px;background:#5aa6e0;opacity:.6;animation:ripple 1.4s infinite}
-  @keyframes ripple{0%,100%{transform:translateX(-6px)}50%{transform:translateX(6px)}}
-  .dipblade{position:absolute;left:92px;bottom:30px;font-size:40px;transform:rotate(90deg)}
-  .active .dipblade{animation:dip 2s ease-in-out}
-  @keyframes dip{0%{bottom:90px}40%,60%{bottom:14px}100%{bottom:90px}}
-  .steam{position:absolute;left:96px;bottom:46px;font-size:26px;opacity:0}
-  .active .steam{animation:steam 2s ease-out}
-  @keyframes steam{0%,35%{opacity:0}45%{opacity:.9;transform:translateY(0)}100%{opacity:0;transform:translateY(-40px)}}
-
-  /* reveal */
-  .reveal{flex-direction:column;gap:8px}
-  .sword{font-size:90px;transform:rotate(-30deg);filter:drop-shadow(0 0 16px #ffd98a)}
-  .active .sword{animation:pop .7s ease-out, shine 2.4s .7s}
-  @keyframes pop{0%{transform:rotate(-30deg) scale(.3);opacity:0}70%{transform:rotate(-30deg) scale(1.15)}100%{transform:rotate(-30deg) scale(1)}}
-  .done-txt{font-weight:800;color:#ffd54a;letter-spacing:1px;text-shadow:0 2px 6px #000}
-  .stars{font-size:22px;letter-spacing:4px}
-
-  /* caption + steps */
-  .caption{text-align:center;margin:12px 0 4px;font-weight:800;color:#f4a93a;font-size:16px}
-  .steps{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:10px}
-  .step{font-size:11px;font-weight:700;color:#9a7b58;background:#241710;border:1px solid #3a2614;
-     border-radius:20px;padding:4px 10px}
-  .step.on{color:#1b120c;background:#f4a93a;border-color:#f4a93a}
-  .controls{text-align:center}
-  .ctrl{display:inline-block;background:#3a2614;border:1px solid #6b4a2a;color:#ffcf8a;
-     border-radius:9px;padding:7px 14px;font-weight:700;cursor:pointer;font-size:13px}
-  .note{text-align:center;color:#9a7b58;font-size:12px;margin-top:14px;line-height:1.5}
+  :root{--bg:#160d08;--panel:#241710;--edge:#3a2616;--wood:#6b4a2a;--accent:#f4a93a;--text:#ffe2b8;--muted:#9a7b58}
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,sans-serif}
+  body{min-height:100vh;display:flex;justify-content:center;padding:12px 16px 24px}
+  .wrap{width:100%;max-width:420px}
+  h1{font-size:18px;margin:4px 0 2px;color:var(--accent);text-align:center}
+  .sub{font-size:12px;color:var(--muted);text-align:center;margin:0 0 10px}
+  .steps{display:flex;gap:3px;justify-content:center;flex-wrap:wrap;margin-bottom:8px}
+  .step{font-size:10px;font-weight:700;color:var(--muted);background:var(--panel);border:1px solid var(--edge);border-radius:20px;padding:3px 6px}
+  .step.on{color:#1b120c;background:var(--accent);border-color:var(--accent)}
+  .step.done{color:var(--accent);border-color:var(--wood)}
+  canvas{display:block;width:100%;aspect-ratio:180/240;image-rendering:pixelated;border:4px solid var(--edge);border-radius:14px;
+    background:#1a0f09;touch-action:none;user-select:none;-webkit-user-select:none;cursor:pointer}
+  .cap{text-align:center;font-weight:800;color:var(--accent);margin:10px 0 2px;font-size:16px;min-height:20px}
+  .hint{text-align:center;font-size:13px;color:var(--muted);min-height:36px;line-height:1.45}
+  .hint b{color:var(--text)}
+  .bar{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:8px}
+  .grp{font-size:11px;color:var(--muted);text-align:center;width:100%;margin-top:4px}
+  .btn{background:var(--edge);border:1px solid var(--wood);color:#ffcf8a;border-radius:10px;padding:9px 12px;font-weight:700;font-size:13px;cursor:pointer;min-width:84px}
+  .btn.sel{background:var(--accent);color:#1b120c;border-color:var(--accent)}
+  .btn.go{background:#c8571c;color:#fff;border-color:#ff8a3a}
+  .btn:disabled{opacity:.4;cursor:default}
+  .btn.slot{min-width:96px;border-width:2px}
+  table.res{margin:8px auto 0;border-collapse:collapse;font-size:12px}
+  table.res td{padding:2px 8px;color:var(--muted)}
+  table.res td:last-child{color:var(--text);font-weight:700;text-align:right}
+  .wname{font-size:18px;font-weight:800;margin:2px 0 0;text-shadow:0 2px 6px #000}
+  .walt{font-size:12px;color:var(--muted);margin-bottom:6px}
+  .nameform{display:flex;gap:6px;justify-content:center;margin:4px 0}
+  .nameform input{background:var(--panel);border:1px solid var(--wood);color:var(--text);border-radius:10px;padding:8px 10px;font-size:14px;font-weight:700;width:170px}
+  .ladder{display:flex;flex-wrap:wrap;gap:3px;justify-content:center;margin:8px 0 2px}
+  .lt{font-size:10px;font-weight:700;padding:2px 6px;border-radius:8px;border:1px solid var(--c);color:var(--c)}
+  .lt.off{opacity:.25;border-style:dashed}
+  .lt.cur{background:var(--c);color:#1b120c;font-weight:800}
+  .lnote{font-size:11px;color:var(--muted)}
+  .found{color:#7fe0a0;font-weight:700}
+  .inv{margin-top:14px;background:var(--panel);border:1px solid var(--edge);border-radius:12px;padding:10px 12px}
+  .invh{font-weight:800;color:var(--accent);margin-bottom:6px}
+  .ores{display:flex;flex-wrap:wrap;gap:5px}
+  .ore{font-size:12px;border:1px solid;border-radius:8px;padding:3px 7px;color:var(--text)}
+  .imsg{font-size:12px;margin-top:8px;color:var(--text)}
+  .invs{font-size:11px;color:var(--muted);margin:10px 0 4px}
+  .wrow{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:5px 0;border-top:1px solid var(--edge);font-size:12px}
+  .wrow small{color:var(--muted)}
+  .btn.melt{min-width:0;padding:6px 10px;font-size:12px}
+  .btn.reset{min-width:0;padding:5px 9px;font-size:11px;margin-top:8px;opacity:.8}
+  .empty{font-size:12px;color:var(--muted)}
+  .note{font-size:11px;color:var(--muted);text-align:center;margin-top:16px;line-height:1.5}
 </style>
-
-<div class="forge-wrap">
-  <div class="scene" id="scene">
-    <div class="floor"></div>
-
-    <!-- 1: POTA + drop -->
-    <div class="layer" data-i="0">
-      <div class="pota">
-        <div class="rim"></div>
-        <div class="slot s1"></div><div class="slot s2"></div><div class="slot s3"></div>
-        <div class="cup"></div>
-        <div class="drop d1">⬜</div><div class="drop d2">⚫</div><div class="drop d3">🔴</div>
-      </div>
-    </div>
-
-    <!-- 2: ERİT -->
-    <div class="layer" data-i="1">
-      <div class="pota">
-        <div class="rim"></div>
-        <div class="slot s1"></div><div class="slot s2"></div><div class="slot s3"></div>
-        <div class="cup" style="box-shadow:0 0 30px #ff8a2a inset"></div>
-        <div class="molten"></div>
-      </div>
-    </div>
-
-    <!-- 3: KALIBA DÖK -->
-    <div class="layer" data-i="2">
-      <div class="pourbox">
-        <div class="pota-tilt">🫕</div>
-        <div class="stream"></div>
-        <div class="mold"><div class="blade"></div></div>
-      </div>
-    </div>
-
-    <!-- 4: DÖV -->
-    <div class="layer" data-i="3">
-      <div class="anvil-box">
-        <div class="blade-hot">🗡️</div>
-        <div class="spark">✨</div>
-        <div class="hammer">🔨</div>
-        <div class="anvil">⚒️</div>
-      </div>
-    </div>
-
-    <!-- 5: SOĞUT -->
-    <div class="layer" data-i="4">
-      <div class="trough">
-        <div class="steam">💨</div>
-        <div class="dipblade">🗡️</div>
-        <div class="water"></div>
-      </div>
-    </div>
-
-    <!-- 6: KILIÇ -->
-    <div class="layer reveal" data-i="5">
-      <div class="sword">⚔️</div>
-      <div class="done-txt">AL SANA KILIÇ!</div>
-      <div class="stars">⭐⭐⭐</div>
-    </div>
-  </div>
-
-  <div class="caption" id="cap">Malzemeyi potaya at</div>
-  <div class="steps" id="steps">
-    <span class="step">1 · Potaya at</span>
-    <span class="step">2 · Erit</span>
-    <span class="step">3 · Kalıba dök</span>
-    <span class="step">4 · Döv</span>
-    <span class="step">5 · Soğut</span>
-    <span class="step">6 · Kılıç!</span>
-  </div>
-  <div class="controls"><span class="ctrl" onclick="playForge(true)">▶ Baştan oynat</span></div>
-
-  <div class="note">
-    Fikir bu: her aşama oyuncunun <b>fiziksel bir hareketiyle</b> olur (malzemeyi sürükle-at, körüğü pompala, ritimle çekiçle vur, suya daldır),
-    ekranda da canlı canlı görünür. Gösterge/form yok.<br>
-    Akış doğru mu? Eksik/fazla aşama var mı?
-  </div>
+</head>
+<body>
+<div class="wrap">
+  <h1>⚒️ Dövme Prototipi</h1>
+  <p class="sub">Oynanabilir taslak · fare veya dokunmatik</p>
+  <div class="steps" id="steps"></div>
+  <canvas id="cv" width="180" height="240"></canvas>
+  <div class="cap" id="cap"></div>
+  <div class="hint" id="hint"></div>
+  <div class="bar" id="bar"></div>
+  <div class="inv" id="inv"></div>
+  <div class="note">SÜSLE bu prototipte yok (oyunda ileride açılan adım).<br>
+    Masaüstünde ISIT adımında <b>boşluk</b> tuşu da körüğü pompalar.</div>
 </div>
 
 <script>
 (function(){
-  var caps=["Malzemeyi potaya at","Erit (pota kızarır, metal erir)","Kalıba dök","Döv (ritimle çekiçle)","Suya daldır, soğut","Kılıç hazır! Kalite belli olur"];
-  var durs=[2200,2000,2400,2600,2400,2800];
-  var layers, steps, cap, i=0, t=null;
-  function show(n){
-    layers.forEach(function(l){l.classList.toggle("active", +l.dataset.i===n);});
-    steps.forEach(function(s,k){s.classList.toggle("on",k===n);});
-    cap.textContent=caps[n];
+  var cv=document.getElementById('cv'), g=cv.getContext('2d');
+  var W=180, H=240;
+  g.imageSmoothingEnabled=false;
+  function $(id){return document.getElementById(id);}
+  function clamp(v,a,b){return v<a?a:v>b?b:v;}
+
+  // ---------- renk ----------
+  function hex(c){return [parseInt(c.slice(1,3),16),parseInt(c.slice(3,5),16),parseInt(c.slice(5,7),16)];}
+  function toHex(a){return '#'+a.map(function(v){return ('0'+Math.round(clamp(v,0,255)).toString(16)).slice(-2);}).join('');}
+  function mix(a,b,t){var A=hex(a),B=hex(b);return toHex(A.map(function(v,i){return v+(B[i]-v)*t;}));}
+  function avgCol(cols){var s=[0,0,0];cols.forEach(function(c){hex(c).forEach(function(v,i){s[i]+=v;});});return toHex(s.map(function(v){return v/cols.length;}));}
+  var HEAT_STOPS=[[0,'#4a3a32'],[.3,'#7a1a10'],[.5,'#c8281a'],[.65,'#ff6a1a'],[.8,'#ffc23a'],[1,'#fff6d8']];
+  function heatColor(h){
+    h=clamp(h,0,1);
+    for(var i=1;i<HEAT_STOPS.length;i++){
+      if(h<=HEAT_STOPS[i][0]){var a=HEAT_STOPS[i-1],b=HEAT_STOPS[i];return mix(a[1],b[1],(h-a[0])/(b[0]-a[0]));}
+    }
+    return HEAT_STOPS[HEAT_STOPS.length-1][1];
   }
-  function tick(){ show(i); t=setTimeout(function(){ i=(i+1)%6; tick(); }, durs[i]); }
-  window.playForge=function(reset){ if(t)clearTimeout(t); if(reset)i=0; tick(); };
-  function init(){
-    layers=[].slice.call(document.querySelectorAll(".layer"));
-    steps=[].slice.call(document.querySelectorAll("#steps .step"));
-    cap=document.getElementById("cap");
-    playForge(true);
+
+  // ---------- veri ----------
+  var STEPS=['Malzeme','Isıt','Dök','Döv','Soğut','Bile','Birleştir','Sonuç'];
+  // minT/maxT: metalin kademe aralığı. Performans tabanı aralığın içine yayar (en fazla maxT-1), şans en fazla maxT'ye iter.
+  var METALS={
+    demir:{ad:'Demir',zc:.50,zw:.13,agi:.7,hasar:20,minT:0,maxT:4,gr:1200,deger:40,rank:0,dur:85,blade:'#8a8f96',ingot:'#6d6a66'},
+    celik:{ad:'Çelik',zc:.60,zw:.09,agi:1.0,hasar:34,minT:0,maxT:5,gr:950,deger:120,rank:1,dur:78,blade:'#c3ccd6',ingot:'#8d96a0'},
+    mitril:{ad:'Mitril',zc:.72,zw:.055,agi:1.6,hasar:58,minT:2,maxT:6,gr:520,deger:600,rank:2,dur:92,blade:'#a8f0f4',ingot:'#9fe3e8'}
+  };
+  var MKEYS=['demir','celik','mitril'];
+  // anahtar: demir,çelik,mitril külçe sayısı
+  var ALLOYS={'2,1,0':'Karbonlu Demir','1,2,0':'Sertleşmiş Çelik','2,0,1':'Mitril Damarlı Demir','1,0,2':'Gök Demiri',
+              '0,2,1':'Ay Çeliği','0,1,2':'Mitril Çeliği','1,1,1':'Üç Damar'};
+  var BULUNUR=['Bol','Seyrek','Kıymetli'];
+  var COAL={az:{ad:'Az',k:.7},orta:{ad:'Orta',k:1},cok:{ad:'Çok',k:1.45}};
+  var LIQ={
+    // rate: soğuma hızı (sn başına). Kiraz kırmızısı kademesi yağda ~1,5 sn, suda ~1,2 sn, buz suyunda ~1 sn sürer.
+    su:{ad:'Su',rate:.12,col:'#2e6fb0',ipucu:'Keskinlik↑ kırılganlık↑ · hızlı soğur'},
+    yag:{ad:'Yağ',rate:.09,col:'#7a5a18',ipucu:'Sağlam, dengeli · yavaş soğur (kolay)'},
+    buz:{ad:'Buz suyu',rate:.14,col:'#7fd6ef',ipucu:'+Buz özelliği · çok hızlı soğur'}
+  };
+  var TIERS=[['Kırık','#8a735e'],['Sıradan','#c9c2b8'],['Yaygın Olmayan','#5fcf6a'],['Nadir','#4aa3ff'],
+             ['Epik','#b06cff'],['Efsanevi','#ff9a2a'],['Mitik','#ff4fa0']];
+  var WEIGHTS={heat:.25,forge:.30,quench:.20,grind:.25}; // kılıç: BİLE ve DÖV ağır
+
+  // Potadaki 3 külçeden metalin/alaşımın özelliklerini çıkarır.
+  function alloy(slots){
+    var n={demir:0,celik:0,mitril:0}; slots.forEach(function(s){n[s]++;});
+    var key=n.demir+','+n.celik+','+n.mitril;
+    function avg(f){var s=0;slots.forEach(function(k){s+=METALS[k][f];});return s/slots.length;}
+    var dom=MKEYS.reduce(function(a,b){return n[b]>n[a]||(n[b]===n[a]&&METALS[b].rank>METALS[a].rank)?b:a;});
+    var mixed=MKEYS.filter(function(k){return n[k]>0;}).length>1;
+    var tr=[];
+    if(n.demir>=2) tr.push('⚓ Ağır');
+    if(n.celik>=2) tr.push('🔪 Sert');
+    if(n.mitril>=2) tr.push('🪶 Hafif','🛡️ Paslanmaz');
+    if(n.mitril>=1) tr.push('✨ Büyü iletken');
+    if(mixed) tr.push('⚗️ Alaşım');
+    return {key:key,n:n,dom:dom,mixed:mixed,ad:ALLOYS[key]||METALS[dom].ad,
+      zc:avg('zc'),zw:avg('zw')*(mixed?.85:1),agi:avg('agi'),hasar:avg('hasar'),dur:avg('dur'),
+      D:clamp(avg('rank')/2+(mixed?.1:0),0,1), // zorluk 0..1: ISIT ve BİLE bununla sertleşir
+      minT:Math.round(avg('minT')),maxT:Math.round(avg('maxT')),gr:Math.round(avg('gr')),
+      deger:avg('deger')*(mixed?1.15:1),bulunur:BULUNUR[Math.round(avg('rank'))],
+      blade:avgCol(slots.map(function(k){return METALS[k].blade;})),traits:tr,st:STYLES[key]};
   }
-  if(document.readyState!=="loading")init(); else document.addEventListener("DOMContentLoaded",init);
+  var FOUND={};
+  try{FOUND=JSON.parse(localStorage.getItem('demirusta_alasimlar')||'{}')||{};}catch(e){}
+  function discover(A){
+    if(!A.mixed||FOUND[A.key]) return false;
+    FOUND[A.key]=1;
+    try{localStorage.setItem('demirusta_alasimlar',JSON.stringify(FOUND));}catch(e){}
+    return true;
+  }
+
+  // ---------- silah adı: özellikten otomatik ad, üst kademede özel isim ----------
+  // Tema, silahın baskın özelliğinden seçilir; her tema kendi kelime havuzunu taşır.
+  var THEMES={
+    buz:   {sifat:'Buzlu',    unvan:['Ayazın','Kuzeyin','Karların'],      destan:['Kışın Dişi','Donmuş Yemin','Ayaz Gözyaşı'],  lakap:'Buz Kesen'},
+    isik:  {sifat:'Işıltılı', unvan:['Şafağın','Yıldızların','Ayın'],     destan:['Yıldız Kırığı','Şafak Kesen','Ay Işığı'],    lakap:'Işık Taşıyan'},
+    keskin:{sifat:'Keskin',   unvan:['Rüzgârın','Fırtınanın','Şimşeğin'], destan:['Sessiz Pençe','Şimşek Dili','Rüzgâr Fısıltısı'], lakap:'Yel Biçen'},
+    agir:  {sifat:'Ağır',     unvan:['Dağın','Kayanın','Toprağın'],       destan:['Dağ Kalbi','Taş Yürek','Yer Sarsan'],       lakap:'Dağ Yaran'},
+    sert:  {sifat:'Sert',     unvan:['Örsün','Kalenin','Nöbetin'],        destan:['Kırılmaz Söz','Demir Yemin','Son Nöbet'],   lakap:'Kırılmaz'},
+    genel: {sifat:'Dengeli',  unvan:['Ustanın','Yolcunun','Bekçinin'],    destan:['Sessiz Yemin','Ocak Bekçisi','Kor Yürek'],  lakap:'Ocağın Mirası'}
+  };
+  var METAL_SIFAT={demir:'Ağır',celik:'Sert',mitril:'Hafif'};
+  function pick(a){return a[Math.floor(Math.random()*a.length)];}
+  function themeOf(R){
+    var A=S.A;
+    if(S.liq==='buz') return 'buz';
+    if(A.n.mitril>=2) return 'isik';
+    if(R.keskin>=80) return 'keskin';
+    if(A.dom==='demir') return 'agir';
+    if(A.dom==='celik') return 'sert';
+    return A.n.mitril?'isik':'genel';
+  }
+  function secondSifat(R,first){ // Nadir kademe için ikinci sıfat
+    var c=[R.keskin>=70?'Keskin':null,R.saglam>=70?'Sağlam':null,METAL_SIFAT[S.A.dom],'Sağlam','Dengeli'];
+    for(var i=0;i<c.length;i++) if(c[i]&&c[i]!==first) return c[i];
+  }
+  function weaponName(R){
+    var th=THEMES[themeOf(R)], m=S.A.ad, wk=WS().kok, wt=WS().tam;
+    if(R.tier===0) return {ad:'Çatlak '+m+' '+wk};
+    if(R.tier===1) return {ad:m+' '+wk};
+    if(R.tier===2) return {ad:th.sifat+' '+m+' '+wk};
+    if(R.tier===3) return {ad:secondSifat(R,th.sifat)+' ve '+th.sifat+' '+m+' '+wk};
+    if(R.tier===4) return {ad:pick(th.unvan)+' '+m+' '+wt};
+    if(R.tier===5) return {ad:'«'+pick(th.destan)+'»',alt:th.lakap+' · '+m+' '+wt};
+    return {ad:null,oneri:pick(th.destan),alt:th.lakap+' · '+m+' '+wt}; // Mitik: adını oyuncu koyar
+  }
+
+  // ---------- durum ----------
+  var S={phase:0,wt:'kilic',sub:'sovalye',slots:['demir','demir','demir'],coal:'orta',liq:'su',scores:{},extra:{},A:null};
+  var P={}, parts=[], labels=[], ptr={down:false,x:0,y:0}, T=0;
+
+  // ---------- oda arka planı (bir kez çizilir) ----------
+  var room=document.createElement('canvas'); room.width=W; room.height=H;
+  (function(){
+    var r=room.getContext('2d');
+    r.fillStyle='#2a1a12'; r.fillRect(0,0,W,H);
+    for(var y=0,row=0;y<190;y+=10,row++){
+      for(var x=(row%2?-10:0);x<W;x+=20){
+        r.fillStyle=((x+y)/10)%3<1?'#33211a':'#2e1d16'; r.fillRect(x+1,y+1,18,8);
+      }
+    }
+    r.fillStyle='#1d120c'; r.fillRect(0,190,W,50);
+    r.fillStyle='#160d08'; for(var py=196;py<H;py+=9) r.fillRect(0,py,W,1);
+    r.fillStyle='#3a2616'; r.fillRect(0,189,W,2);
+  })();
+
+  // ---------- parçacık + yazılar ----------
+  function burst(x,y,n,cols,spd,grav,life){
+    for(var i=0;i<n;i++){
+      var a=Math.random()*Math.PI*2, s=spd*(.4+Math.random()*.8);
+      parts.push({x:x,y:y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-spd*.3,life:life*(.6+Math.random()*.6),
+                  max:life,col:cols[i%cols.length],sz:Math.random()<.3?2:1,grav:grav});
+    }
+  }
+  function label(text,col,x,y){labels.push({text:text,col:col,x:x,y:y,life:.9});}
+  function updFx(dt){
+    parts=parts.filter(function(p){p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=p.grav*dt;return p.life>0;});
+    labels=labels.filter(function(l){l.life-=dt;l.y-=14*dt;return l.life>0;});
+  }
+  function drawFx(){
+    parts.forEach(function(p){
+      var k=clamp(p.life/p.max,0,1); g.fillStyle=p.col;
+      if(p.r){g.globalAlpha=k*.45;g.beginPath();g.arc(p.x,p.y,p.r+(1-k)*p.grow,0,Math.PI*2);g.fill();} // buhar bulutu
+      else{g.globalAlpha=k;g.fillRect(p.x|0,p.y|0,p.sz,p.sz);}
+    });
+    g.globalAlpha=1;
+    g.font='bold 8px monospace'; g.textAlign='center';
+    labels.forEach(function(l){
+      g.globalAlpha=clamp(l.life*2,0,1);
+      g.fillStyle='#000'; g.fillText(l.text,(l.x|0)+1,(l.y|0)+1);
+      g.fillStyle=l.col; g.fillText(l.text,l.x|0,l.y|0);
+    });
+    g.globalAlpha=1;
+  }
+
+  // ---------- arayüz ----------
+  function setSteps(){
+    $('steps').innerHTML=STEPS.map(function(s,i){
+      return '<span class="step'+(i===S.phase?' on':i<S.phase?' done':'')+'">'+s+'</span>';
+    }).join('');
+  }
+  function setText(cap,hint){$('cap').textContent=cap;$('hint').innerHTML=hint||'';}
+  function setBar(groups){
+    var bar=$('bar'); bar.innerHTML='';
+    groups.forEach(function(gr){
+      var t=document.createElement('div');t.className='grp';t.textContent=gr.title||'';bar.appendChild(t);
+      gr.btns.forEach(function(b){
+        var el=document.createElement('button');
+        el.className='btn'+(b.sel?' sel':'')+(b.go?' go':'')+(b.cls?' '+b.cls:'');
+        el.textContent=b.t; el.disabled=!!b.dis;
+        if(b.border) el.style.borderColor=b.border;
+        el.onclick=b.fn; bar.appendChild(el);
+      });
+    });
+  }
+  function finish(key,score,next,msg){
+    S.scores[key]=clamp(score,0,1);
+    P.done=true; P.endIn=1.3;
+    P.next=next;
+    label((msg||'')+Math.round(S.scores[key]*100),'#ffd54a',90,40);
+  }
+
+  // ---------- ortak çizimler ----------
+  function drawHearth(intensity){
+    g.fillStyle='#5a3a2a'; g.fillRect(52,168,76,22);
+    g.fillStyle='#46291c'; for(var x=52;x<128;x+=12) g.fillRect(x,178,1,12);
+    g.fillStyle='#120a06'; g.fillRect(62,172,56,16);
+    for(var i=0;i<9;i++){
+      var fh=(5+Math.sin(T*12+i*1.7)*2+Math.random()*2)*intensity*1.5;
+      g.fillStyle=i%2?'#ff8a2a':'#ffc23a'; g.fillRect(64+i*6,188-fh,5,fh);
+    }
+    g.globalAlpha=.12*intensity; g.fillStyle='#ff8a2a';
+    g.beginPath(); g.arc(90,178,44,0,Math.PI*2); g.fill(); g.globalAlpha=1;
+  }
+  function poly(pts){g.beginPath();g.moveTo(pts[0][0],pts[0][1]);for(var i=1;i<pts.length;i++)g.lineTo(pts[i][0],pts[i][1]);g.closePath();g.fill();}
+  // Her metal kendi biçiminde: demir = kaba cevher, çelik = külçe, mitril = kristal.
+  function drawPiece(kind,x,y){
+    x=Math.round(x); y=Math.round(y);
+    if(kind==='demir'){
+      g.fillStyle='#1a1210'; poly([[x+2,y-1],[x+10,y-2],[x+16,y+3],[x+15,y+10],[x+5,y+11],[x-1,y+6]]);
+      g.fillStyle='#5f5a56'; poly([[x+3,y],[x+10,y-1],[x+15,y+3],[x+14,y+9],[x+5,y+10],[x,y+6]]);
+      g.fillStyle='#837c75'; poly([[x+3,y],[x+10,y-1],[x+11,y+3],[x+4,y+4]]);
+      g.fillStyle='#3e3a37'; poly([[x+11,y+3],[x+15,y+3],[x+14,y+9],[x+9,y+8]]);
+      g.fillStyle='#9a5530'; g.fillRect(x+6,y+5,2,1); g.fillRect(x+11,y+6,1,1); g.fillRect(x+3,y+6,1,1); g.fillRect(x+8,y+2,1,1);
+    } else if(kind==='celik'){
+      g.fillStyle='#1a1210'; poly([[x+1,y],[x+14,y],[x+16,y+8],[x-1,y+8]]);
+      g.fillStyle='#8d96a0'; poly([[x+2,y+1],[x+13,y+1],[x+15,y+7],[x,y+7]]);
+      g.fillStyle='#d6dde4'; g.fillRect(x+2,y+1,11,1); g.fillRect(x+2,y+2,1,4);
+      g.fillStyle='#646c76'; g.fillRect(x,y+6,15,1);
+      g.fillStyle='#b4bcc6'; g.fillRect(x+5,y+3,5,1);
+    } else {
+      g.fillStyle='#1a1210'; poly([[x,y+10],[x+3,y-2],[x+6,y+3],[x+10,y-5],[x+15,y+10]]);
+      g.fillStyle='#5fbcc4'; poly([[x+1,y+9],[x+3,y],[x+6,y+4],[x+10,y-3],[x+14,y+9]]);
+      g.fillStyle='#9fe3e8'; poly([[x+10,y-3],[x+14,y+9],[x+10,y+9]]); poly([[x+3,y],[x+6,y+4],[x+5,y+9],[x+1,y+9]]);
+      g.fillStyle='#e8ffff'; g.fillRect(x+10,y-2,1,6); g.fillRect(x+3,y+1,1,4);
+    }
+  }
+  function drawCrucible(){
+    g.fillStyle='#3d3a38'; g.beginPath(); g.moveTo(72,146); g.lineTo(108,146); g.lineTo(104,170); g.lineTo(76,170); g.fill();
+    g.fillStyle='#55504c'; g.fillRect(72,146,36,2);
+  }
+  // Cüce demircinin kolu: (gx,gy) eldivenin bileği, (ex,ey) yalnızca kolun yönü (uzunluk sabit, kısa).
+  // Yerel x: bilekten dirseğe. Sıvanmış kalın yen, kıllı tıknaz ön kol (üç tonlu kas), perçinli deri bileklik-eldiven.
+  function drawArm(gx,gy,ex,ey){
+    var O='#1a1210', i;
+    g.save(); g.translate(gx,gy); g.rotate(Math.atan2(ey-gy,ex-gx));
+    // sıvanmış yen: katlanmış kalın kumaş, kıvrım çizgileri
+    g.fillStyle=O; poly([[29,-14],[38,-16],[46,-15],[48,0],[46,15],[38,16],[29,14]]);
+    g.fillStyle='#4a3a52'; poly([[30,-13],[38,-15],[45,-14],[47,0],[45,14],[38,15],[30,13]]);
+    g.fillStyle='#5e4c68'; poly([[30,-13],[38,-15],[45,-14],[46,-6],[38,-7],[30,-6]]);
+    g.fillStyle='#6e5c78'; g.fillRect(33,-13,7,2);
+    g.fillStyle='#33283a'; g.fillRect(34,-14,1,28); g.fillRect(41,-14,1,28); g.fillRect(30,7,15,1); // kat yerleri
+    // ön kol: bilekten dirseğe kalınlaşır; ışık alan kas, orta ton, gölge
+    g.fillStyle=O; poly([[12,-9.5],[21,-12.5],[31,-13],[31,13],[21,12],[12,9.5]]);
+    g.fillStyle='#b8784a'; poly([[13,-8.5],[21,-11.5],[31,-12],[31,12],[21,11],[13,8.5]]);
+    g.fillStyle='#d8956a'; poly([[13,-8.5],[21,-11.5],[31,-12],[31,-4],[23,-3.5],[13,-3]]);
+    g.fillStyle='#ecb48c'; poly([[17,-9.5],[25,-11],[29,-10.5],[25,-8.5]]); // kas parlaması
+    g.fillStyle='#8e5634'; poly([[13,4],[21,5],[31,6],[31,12],[21,11],[13,8.5]]);
+    g.fillStyle='#7a4428'; g.fillRect(21,-2,8,1); g.fillRect(16,1,5,1); // kas ayrımı
+    g.fillStyle='#5a3418'; // cüce kılları
+    for(i=0;i<7;i++){var hx=15+i*2.3, hy=-6+((i*5)%9); g.fillRect(hx,hy,1,2); g.fillRect(hx+1,hy+1,1,1);}
+    // bileklik-eldiven: dirseğe doğru genişleyen deri, dikiş izleri, iki metal perçin
+    g.fillStyle=O; poly([[0,-9],[15,-11],[15,11],[0,9]]);
+    g.fillStyle='#7a4a26'; poly([[1,-8],[14,-10],[14,10],[1,8]]);
+    g.fillStyle='#9a6434'; poly([[1,-8],[14,-10],[14,-6],[1,-5]]);
+    g.fillStyle='#5a341a'; poly([[1,4],[14,6],[14,10],[1,8]]);
+    g.fillStyle='#3e2412'; g.fillRect(13,-10,1,20); g.fillRect(4,-8,1,16); // dikiş bandı
+    g.fillStyle='#c9a46a'; for(i=-7;i<8;i+=3) g.fillRect(12,i,1,1);    // dikiş izleri
+    g.fillStyle=O; g.fillRect(7,-6,3,3); g.fillRect(7,3,3,3);
+    g.fillStyle='#c9ced6'; g.fillRect(7.5,-5.5,2,2); g.fillRect(7.5,3.5,2,2);
+    g.fillStyle='#ffffff'; g.fillRect(7.5,-5.5,1,1); g.fillRect(7.5,3.5,1,1);
+    g.restore();
+  }
+  // Sapı kavrayan iri, eldivenli cüce yumruğu; sap yerel y ekseni boyunca uzanır.
+  // Bir yanda sapı saran dört parmak boğumu, üstte kapanan başparmak, diğer yanda elin sırtı.
+  function drawFist(x,y,rot){
+    var O='#1a1210', i;
+    g.save(); g.translate(x,y); g.rotate(rot);
+    g.fillStyle=O; poly([[-6,-8],[5,-8],[8,-6],[8.5,5],[6,7.5],[-6,7.5],[-9,5],[-9,-5.5]]);
+    // elin sırtı
+    g.fillStyle='#6e4222'; poly([[0,-7],[5,-7],[7.5,-5],[7.5,4.5],[5.5,6.5],[0,6.5]]);
+    g.fillStyle='#8a5630'; poly([[0,-7],[5,-7],[7.5,-5],[7.5,-1],[0,-1]]);
+    // dört parmak: her biri yuvarlatılmış boğum, aralarında kıvrım
+    for(i=0;i<4;i++){
+      var fy=-7+i*3.6;
+      g.fillStyle='#7a4a26'; poly([[-7,fy+.5],[-1,fy],[0,fy+1],[0,fy+3.2],[-1,fy+3.6],[-7,fy+3.2],[-8,fy+1.8]]);
+      g.fillStyle='#a8703e'; g.fillRect(-7,fy+.6,5,1);   // boğum ışığı
+      g.fillStyle='#c48a50'; g.fillRect(-7.5,fy+1,1,1);   // boğum ucu parlaması
+      if(i<3){g.fillStyle='#3e2412'; g.fillRect(-8,fy+3.4,8,.8);} // parmak arası
+    }
+    // başparmak: üstten sapın etrafına kapanır
+    g.fillStyle=O; poly([[-1,-9],[6,-8],[7,-5.5],[1,-5],[-2,-6.5]]);
+    g.fillStyle='#9a6434'; poly([[-.5,-8.3],[5.5,-7.5],[6.2,-6],[1,-5.8],[-1.2,-6.8]]);
+    g.fillStyle='#b88048'; g.fillRect(1,-8,3,1);
+    // dikiş + bilek kayışı tokası
+    g.fillStyle='#c9a46a'; for(i=-5;i<6;i+=3) g.fillRect(5,i,1,1);
+    g.fillStyle=O; g.fillRect(6.5,1,2.5,4); g.fillStyle='#c9ced6'; g.fillRect(7,1.5,1.5,3);
+    g.restore();
+  }
+  // Dikey maşa: eldiven (x,fy) noktasında kavrar, çeneler (x,jy) noktasında parçayı tutar.
+  function drawTongs(x,fy,jy){
+    g.fillStyle='#1a1416'; g.fillRect(x-3,fy,2,jy-fy+3); g.fillRect(x+1,fy,2,jy-fy+3);
+    g.fillStyle='#5f646c'; g.fillRect(x-2.5,fy,1,jy-fy+2); g.fillRect(x+1.5,fy,1,jy-fy+2);
+    g.fillStyle='#1a1416'; g.fillRect(x-4,jy-1,8,4);
+    g.fillStyle='#8a9099'; g.fillRect(x-3,jy,6,1);
+  }
+  function drawAnvil(){
+    // kütük
+    g.fillStyle='#4a2e1a'; g.fillRect(60,184,60,8);
+    g.fillStyle='#5a3a22'; g.fillRect(60,184,60,1);
+    // örs
+    g.fillStyle='#1a1416';
+    g.beginPath(); g.moveTo(35,155); g.lineTo(14,159); g.lineTo(35,166); g.fill();
+    g.fillRect(34,155,112,11); g.fillRect(61,165,58,13); g.fillRect(47,177,86,9);
+    g.fillStyle='#4a4f57';
+    g.beginPath(); g.moveTo(36,156); g.lineTo(18,159); g.lineTo(36,164); g.fill();
+    g.fillRect(36,156,108,8); g.fillRect(62,164,56,13); g.fillRect(48,177,84,8);
+    g.fillStyle='#7a8089'; g.fillRect(36,156,108,1); g.fillRect(48,177,84,1);
+    g.fillStyle='#3a3e45'; g.fillRect(36,163,108,1); g.fillRect(62,175,56,2);
+    g.fillStyle='#2a2d33'; g.fillRect(128,158,4,4); // sert delik
+  }
+  // ---------- kılıç görünümü: malzemeye göre renk, desen, balçak ve topuz ----------
+  // anahtar: demir,çelik,mitril külçe sayısı (alloy().key ile aynı)
+  var STYLES={
+    '3,0,0':{blade:'#7d8288',pattern:'pas',   patCol:'#8a5a3a',guard:'duz',   guardCol:'#5a5e64',pommel:'yuvarlak',grip:['#4a2c16','#6b4424']},
+    '0,3,0':{blade:'#c3ccd6',pattern:'none',  patCol:'#ffffff',guard:'kivrik',guardCol:'#b08a3a',pommel:'yuvarlak',grip:['#5a341a','#8a5a2e']},
+    '2,1,0':{blade:'#8f969e',pattern:'sam',   patCol:'#5d636b',guard:'duz',   guardCol:'#8a6a2a',pommel:'yuvarlak',grip:['#5a341a','#8a5a2e']},
+    '1,2,0':{blade:'#aeb7c1',pattern:'sam',   patCol:'#7d8691',guard:'kivrik',guardCol:'#b08a3a',pommel:'yuvarlak',grip:['#3a2a20','#6b4a2a']},
+    '0,0,3':{blade:'#a8f0f4',pattern:'rune',  patCol:'#e6ffff',guard:'kanat', guardCol:'#dfe8f0',pommel:'elmas',   grip:['#9aa8b4','#cfd8e0'],glow:'#7fe8f0'},
+    '2,0,1':{blade:'#7d8288',pattern:'damar', patCol:'#6fe0e8',guard:'diken', guardCol:'#5a5e64',pommel:'elmas',   grip:['#2a2430','#4a4058']},
+    '1,0,2':{blade:'#5f6f8a',pattern:'yildiz',patCol:'#e8f4ff',guard:'kanat', guardCol:'#8a9ab0',pommel:'elmas',   grip:['#1e2a44','#34466a'],glow:'#6a8aff'},
+    '0,2,1':{blade:'#c8d4e0',pattern:'ay',    patCol:'#8fe8f0',guard:'kivrik',guardCol:'#dfe8f0',pommel:'halka',   grip:['#3a4458','#5a6a84']},
+    '0,1,2':{blade:'#b8e8ee',pattern:'damar', patCol:'#ffffff',guard:'kanat', guardCol:'#dfe8f0',pommel:'elmas',   grip:['#9aa8b4','#cfd8e0'],glow:'#9ff0f4'},
+    '1,1,1':{blade:'#9aa4ae',pattern:'serit', patCol:'#9fe3e8',guard:'diken', guardCol:'#b08a3a',pommel:'halka',   grip:['#4a2c16','#8a5a2e']}
+  };
+  // (eski tek-kılıç çizici kaldırıldı: tüm silahlar drawWeaponAt + drawPart ile çizilir)
+
+  function drawPattern(st,L,hw,bTop){
+    var c=st.patCol, i, y, x, k, span=-bTop-2, seed=st.blade.charCodeAt(2)+st.pattern.length*7;
+    function rs(n){var v=Math.sin(n*12.9898+seed*7.1)*43758.5453;return v-Math.floor(v);}
+    g.fillStyle=c;
+    if(st.pattern==='pas'){ // pas lekeleri
+      for(i=0;i<18;i++) g.fillRect(Math.round(-hw+1+rs(i)*(2*hw-2)),Math.round(bTop+2+rs(i+40)*span),1,rs(i+80)<.3?2:1);
+    } else if(st.pattern==='sam'){ // şam çeliği dalgaları
+      for(k=-1;k<=1;k++) for(y=Math.ceil(bTop+2);y<-1;y++){x=k*hw*.55+Math.sin(y*.35+k*2)*1.3;g.fillRect(Math.round(x),y,1,1);}
+    } else if(st.pattern==='damar'){ // parlayan damarlar
+      for(k=0;k<2;k++){x=(k?1:-1)*hw*.5;for(y=Math.ceil(bTop+2);y<-1;y++){x=clamp(x+(rs(y*3+k)-.5)*1.4,-hw+1,hw-1);g.fillRect(Math.round(x),y,1,1);}}
+    } else if(st.pattern==='yildiz'){ // yıldız benekleri
+      for(i=0;i<10;i++){
+        var sx=Math.round(-hw+2+rs(i)*(2*hw-4)), sy=Math.round(bTop+3+rs(i+20)*(span-4));
+        g.globalAlpha*=1; g.fillRect(sx,sy,1,1);
+        if(i%3===0){g.fillRect(sx-1,sy,3,1);g.fillRect(sx,sy-1,1,3);}
+      }
+    } else if(st.pattern==='ay'){ // hilal izleri
+      g.strokeStyle=c; g.lineWidth=1;
+      for(i=0;i<3;i++){var cy=bTop+12+i*(span-18)/2;g.beginPath();g.arc(0,cy,hw*.55,-.3*Math.PI,.9*Math.PI);g.stroke();}
+    } else if(st.pattern==='serit'){ // üç renkli çapraz şeritler
+      var cols=['#6d6a66','#e0e6ec','#9fe3e8'], a0=g.globalAlpha;
+      g.globalAlpha=a0*.55;
+      for(y=Math.ceil(bTop+1);y<0;y++) for(x=Math.ceil(-hw);x<hw;x++){g.fillStyle=cols[Math.floor((y+x*.7+200)/4)%3];g.fillRect(x,y,1,1);}
+      g.globalAlpha=a0;
+    } else if(st.pattern==='rune'){ // parlayan rün oluğu
+      var a1=g.globalAlpha; g.globalAlpha=a1*(.6+.3*Math.sin(T*4));
+      g.fillRect(-1,bTop+6,2,span-12);
+      for(i=0;i<5;i++) g.fillRect(-2,Math.round(bTop+12+i*(span-24)/4),4,1);
+      g.globalAlpha=a1;
+    }
+  }
+  function drawGuard(st,gem){
+    var gc=st.guardCol, hi=mix(gc,'#ffffff',.35), lo=mix(gc,'#000000',.35), O='#1a1210';
+    function bar(x0,w){g.fillStyle=O;g.fillRect(x0-1,0,w+2,7);g.fillStyle=gc;g.fillRect(x0,1,w,5);g.fillStyle=hi;g.fillRect(x0,1,w,1);g.fillStyle=lo;g.fillRect(x0,5,w,1);}
+    if(st.guard==='duz'){ bar(-14,28); }
+    else if(st.guard==='kivrik'){ // uçları ağıza doğru kıvrılır
+      bar(-12,24);
+      g.fillStyle=O; g.fillRect(-17,-3,5,9); g.fillRect(12,-3,5,9);
+      g.fillStyle=gc; g.fillRect(-16,-2,3,7); g.fillRect(13,-2,3,7);
+      g.fillStyle=hi; g.fillRect(-16,-2,3,1); g.fillRect(13,-2,3,1);
+    } else if(st.guard==='kanat'){ // yukarı açılan kanatlar
+      g.fillStyle=O; poly([[-3,-1],[-19,-8],[-16,7],[-3,7]]); poly([[3,-1],[19,-8],[16,7],[3,7]]);
+      g.fillStyle=gc; poly([[-3,0],[-17,-6],[-15,6],[-3,6]]); poly([[3,0],[17,-6],[15,6],[3,6]]);
+      g.fillStyle=hi; poly([[-3,0],[-17,-6],[-15.5,-4],[-3,2]]); poly([[3,0],[17,-6],[15.5,-4],[3,2]]);
+    } else { // diken
+      bar(-14,28);
+      g.fillStyle=O; poly([[-14,-1],[-20,3.5],[-14,8]]); poly([[14,-1],[20,3.5],[14,8]]);
+      poly([[-8,1],[-6,-4],[-4,1]]); poly([[8,1],[6,-4],[4,1]]);
+      g.fillStyle=gc; poly([[-14,1],[-18.5,3.5],[-14,6]]); poly([[14,1],[18.5,3.5],[14,6]]);
+      poly([[-7.5,1],[-6,-2.5],[-4.5,1]]); poly([[7.5,1],[6,-2.5],[4.5,1]]);
+    }
+    g.fillStyle=O; g.fillRect(-5,-1,10,9);
+    g.fillStyle=mix(gc,'#000000',.15); g.fillRect(-4,0,8,7);
+    g.fillStyle=gem; g.fillRect(-2,2,4,3);
+    g.fillStyle='rgba(255,255,255,.6)'; g.fillRect(-2,2,1,1);
+  }
+  function drawPommel(st,gem){
+    var gc=st.guardCol, O='#1a1210', py=26;
+    if(st.pommel==='elmas'){
+      g.fillStyle=O; poly([[0,py-7],[6,py],[0,py+7],[-6,py]]);
+      g.fillStyle=gc; poly([[0,py-5],[4.5,py],[0,py+5],[-4.5,py]]);
+      g.fillStyle=gem; poly([[0,py-3],[2,py],[0,py+3],[-2,py]]);
+      g.fillStyle='rgba(255,255,255,.7)'; g.fillRect(-1,py-2,1,1);
+    } else if(st.pommel==='halka'){
+      g.fillStyle=O; g.beginPath(); g.arc(0,py,5.5,0,Math.PI*2); g.fill();
+      g.fillStyle=gc; g.beginPath(); g.arc(0,py,4.5,0,Math.PI*2); g.fill();
+      g.fillStyle=O; g.beginPath(); g.arc(0,py,2.2,0,Math.PI*2); g.fill();
+      g.fillStyle=gem; g.fillRect(-1,py-5,2,2);
+    } else {
+      g.fillStyle=O; g.beginPath(); g.arc(0,py,5,0,Math.PI*2); g.fill();
+      g.fillStyle=gc; g.beginPath(); g.arc(0,py,4,0,Math.PI*2); g.fill();
+      g.fillStyle=gem; g.beginPath(); g.arc(0,py,2,0,Math.PI*2); g.fill();
+      g.fillStyle='rgba(255,255,255,.7)'; g.fillRect(-2,py-2,1,1);
+    }
+  }
+  // ---------- kalıplar: silah türleri ve alt biçimleri ----------
+  // Metal parça "parça çerçevesinde" tanımlıdır: yatay; x=0 sapın takıldığı yer (baltada göz), +x uca/ağza doğru, +y aşağı.
+  // p=0 kalıptan çıkan ham parçadır — KALIP OYUĞU ile ÖRSE GELEN PARÇA birebir aynıdır —, p=1 dövülmüş hâl; DÖV ilerledikçe
+  // arada geçiş olur. DÖK, DÖV, SOĞUT ve BİLE parçayı bu çerçevede 1:1 çizer; BİRLEŞTİR ve SONUÇ kabza/sapı ekleyip dikey çizer.
+  // kok/tam: ad üretimi için yalın ve tamlama hâli ("Demir Katana" / "Dağın Demir Katanası").
+  var WEAPONS={
+    kilic:{ad:'Uzun Kılıç',parca:'kabza',subs:[
+      {id:'sovalye',ad:'Şövalye Kılıcı',kok:'Şövalye Kılıcı',tam:'Şövalye Kılıcı',kind:'blade',hilt:'cross',  hasarK:1,   grK:1,   degerK:1},
+      {id:'katana', ad:'Katana',        kok:'Katana',        tam:'Katanası',      kind:'blade',hilt:'tsuba',  hasarK:1.05,grK:.9,  degerK:1.15,keskinB:10},
+      {id:'osmanli',ad:'Osmanlı Kılıcı',kok:'Osmanlı Kılıcı',tam:'Osmanlı Kılıcı',kind:'blade',hilt:'osmanli',hasarK:1.1, grK:.95, degerK:1.1, keskinB:5}]},
+    kisa:{ad:'Kısa Kılıç',parca:'kabza',subs:[
+      {id:'gladyus',ad:'Kısa Kılıç',kok:'Kısa Kılıç',tam:'Kısa Kılıcı',kind:'blade',hilt:'kopis',  hasarK:.82,grK:.62,degerK:.78},
+      {id:'hancer', ad:'Hançer',    kok:'Hançer',    tam:'Hançeri',    kind:'blade',hilt:'hancer', hasarK:.6, grK:.35,degerK:.65,keskinB:8},
+      {id:'yatagan',ad:'Yatağan',   kok:'Yatağan',   tam:'Yatağanı',   kind:'blade',hilt:'yatagan',hasarK:.85,grK:.65,degerK:.85,keskinB:4}]},
+    balta:{ad:'Balta',parca:'sap',subs:[
+      {id:'tek',    ad:'Tek Ağızlı Balta', kok:'Balta',            tam:'Baltası',            kind:'axe',hasarK:1.25,grK:1.35,degerK:.9},
+      {id:'cift',   ad:'Çift Ağızlı Balta',kok:'Çift Ağızlı Balta',tam:'Çift Ağızlı Baltası',kind:'axe',hasarK:1.45,grK:1.6, degerK:1.05},
+      {id:'sakalli',ad:'Sakallı Balta',    kok:'Sakallı Balta',    tam:'Sakallı Baltası',    kind:'axe',hasarK:1.3, grK:1.3, degerK:.95}]},
+    mizrak:{ad:'Mızrak',parca:'sap',subs:[
+      {id:'yaprak', ad:'Yaprak Mızrak', kok:'Mızrak',        tam:'Mızrağı',        kind:'spear',hasarK:1.05,grK:1.15,degerK:.85},
+      {id:'kanatli',ad:'Kanatlı Mızrak',kok:'Kanatlı Mızrak',tam:'Kanatlı Mızrağı',kind:'spear',hasarK:1.1, grK:1.2, degerK:.9},
+      {id:'kargi',  ad:'Kargı',         kok:'Kargı',         tam:'Kargısı',        kind:'spear',hasarK:1,   grK:1.05,degerK:.8, keskinB:5}]}
+  };
+  var WKEYS=['kilic','kisa','balta','mizrak'];
+  function WS(){var c=WEAPONS[S.wt];for(var i=0;i<c.subs.length;i++)if(c.subs[i].id===S.sub)return c.subs[i];return c.subs[0];}
+  // BİRLEŞTİR seçenekleri. need: en az bu kıymette metal ister (0 Bol, 1 Seyrek, 2 Kıymetli).
+  // uyum: bu metal baskınsa ek bonus — malzemenin yapısına uygun eşleşme.
+  var HILTS=[
+    {ad:'Deri sargılı ahşap kabza',grip:['#5a341a','#8a5a2e'],dur:0,degerK:1,   grK:1,   uyum:'demir', uyumAd:'Sağlam iş'},
+    {ad:'Kemik kabza',             grip:['#b8ae94','#e8e0cc'],dur:5,degerK:1.12,grK:1.02,uyum:'celik', uyumAd:'Usta dengesi'},
+    {ad:'İpek sargılı abanoz',     grip:['#1a1418','#a01828'],dur:0,degerK:1.35,grK:.98, uyum:'mitril',uyumAd:'Elf işi',need:1},
+    {ad:'Ejderha derisi kabza',    grip:['#2a5a3a','#5a9a64'],dur:8,degerK:1.6, grK:1,   need:2,trait:'🐉 Ejder kavrayışı'}
+  ];
+  var HAFTS=[
+    {ad:'Kayın sap',                shaft:'#9a6a3a',grip:['#5a341a','#8a5a2e'],dur:0,degerK:1,   grK:1,   uyum:'demir', uyumAd:'Sağlam iş'},
+    {ad:'Meşe sap, demir bilezikli',shaft:'#6a4426',grip:['#3a2a20','#6b4a2a'],dur:6,degerK:1.12,grK:1.08,uyum:'celik', uyumAd:'Usta dengesi',rings:true},
+    {ad:'Abanoz sap, ipek sargılı', shaft:'#2e2428',grip:['#1a1418','#a01828'],dur:0,degerK:1.35,grK:.96, uyum:'mitril',uyumAd:'Elf işi',need:1},
+    {ad:'Ejderha kemiği sap',       shaft:'#d8d0b8',grip:['#2a5a3a','#5a9a64'],dur:8,degerK:1.6, grK:1,   need:2,trait:'🐉 Ejder kavrayışı'}
+  ];
+  function gripList(){return WEAPONS[S.wt].parca==='kabza'?HILTS:HAFTS;}
+  function gripStyle(st,gp){return gp?Object.assign({},st,{grip:gp.grip,shaft:gp.shaft,rings:gp.rings}):st;}
+
+  function lerp(a,b,t){return a+(b-a)*t;}
+  function pathOf(pts){g.beginPath();g.moveTo(pts[0][0],pts[0][1]);for(var i=1;i<pts.length;i++)g.lineTo(pts[i][0],pts[i][1]);g.closePath();}
+  // mızrak yaprağının yarı genişliği (u: 0 = yuva, 1 = uç): dipte dar, üçte birde en geniş, uca doğru incelir
+  function spearHW(u){u=clamp(u,0,1);return Math.max(2.5*(1-u*5),6*Math.sin(Math.PI*Math.pow(u,.5))*(1-u*.3));}
+  function sTip(u,s){return u<=s?1:(1-u)/(1-s);} // uca doğru daralma çarpanı
+  function hancerW(u){ // hançer: dipte kısa omuz, ağzın yarısından fazlası neredeyse paralel, uçta kavisli (ogival) sivrilme
+    if(u<.04) return 4.6+.8*u/.04;
+    if(u<.58) return 5.4-.7*(u-.04)/.54;
+    return 4.7*Math.pow(Math.max(0,1-(u-.58)/.42),.6); // max: uçta yuvarlama hatası negatif üs (NaN) vermesin
+  }
+  function kopS(u){return -3+5*u*u;}                                                // kopis sırtı: uca doğru ağıza iner
+  function kopW(u){return (u<.12?5:5+4*Math.sin(Math.PI*.5*Math.min(1,(u-.12)/.6)))-(u<.3?1.2*Math.sin(Math.PI*u/.3):0);} // dipte içbükey, uçta göbek
+  function palaC(u){return -9*Math.pow(u,1.7);}                                     // pala kavisi (sırta doğru)
+  function spearW(x,head,k){return x<10?3.5:spearHW((x-10)/head)*k;} // x<10: yuva
+  function kargiW(x){return x<10?3:3.4*Math.pow(Math.max(0,1-(x-10)/42),.8);}
+  // Biçimler. Kılıç/mızrak: top = üst kenar (sırt), bot = alt kenar (ağız), u: 0 dip → 1 uç. Balta: dış hat + ağız hattı.
+  var SHAPES={
+    sovalye:{L:96,tang:true,top:function(u){return -5*(1-.25*u)*sTip(u,.86);},bot:function(u){return 5*(1-.25*u)*sTip(u,.86);}},
+    katana:{L:96,tang:true,single:true,
+      top:function(u){return -5*u*u-2.5;},
+      bot:function(u){var c=-5*u*u;return u<.9?c+3.5:lerp(c+3.5,c-2.5,(u-.9)/.1);}}, // kissaki: ağız sırta doğru keskin döner
+    osmanli:{L:94,tang:true,single:true, // kavis + ucu genişleyen yelman, uçta sahte ağız
+      top:function(u){var c=-8*Math.pow(u,2.2);return u<.86?c-2.5:lerp(c-2.5,c+1.5,(u-.86)/.14);},
+      bot:function(u){var c=-8*Math.pow(u,2.2), y=u>.55?3*Math.sin(Math.PI*.5*Math.min(1,(u-.55)/.33)):0;
+        return u<.86?c+3.5+y:lerp(c+3.5+y,c+1.5,(u-.86)/.14);}},
+    gladyus:{L:62,tang:true,single:true, // kopis tarzı: dipte dar, uca doğru göbeklenen tek ağız, sırt öne (ağıza) eğilir
+      top:function(u){var s=kopS(u);return u<.86?s:lerp(s,kopS(1)+2.5,Math.pow((u-.86)/.14,1.3));},
+      bot:function(u){var b=kopS(u)+kopW(u);return u<.86?b:lerp(b,kopS(1)+2.5,(u-.86)/.14);}},
+    hancer:{L:54,tang:true,top:function(u){return -hancerW(u);},bot:function(u){return hancerW(u);}},  // yarıya kadar geniş, sonra yaprak gibi kavisle sivrilen çift ağız, ortası sırtlı
+    yatagan:{L:64,tang:true,single:true, // pala tipi: sırta doğru düzgün kavis, ağız uçta sırta dönerek sivrilir
+      top:function(u){return palaC(u)-3;},
+      bot:function(u){var c=palaC(u), b=c+3.6-1.2*u;return u<.84?b:lerp(b,c-3,Math.pow((u-.84)/.16,.9));}},
+    yaprak:{L:44,top:function(u){return -spearW(u*44,34,1.05);},bot:function(u){return spearW(u*44,34,1.05);}},
+    kanatli:{L:46,lugs:true,top:function(u){return -spearW(u*46,36,.95);},bot:function(u){return spearW(u*46,36,.95);}},
+    kargi:{L:52,top:function(u){return -kargiW(u*52);},bot:function(u){return kargiW(u*52);}},
+    tek:{pts:[[-10,-4],[-2,-5],[4,-5],[13,-8],[22,-11],[24.5,2],[22,16],[13,12],[4,8],[-2,8],[-10,8]],edge:[[22,-11],[24.5,2],[22,16]]},
+    cift:{both:true,pts:[[-4,-5],[4,-5],[14,-8],[24,-12],[25.5,1],[24,14],[14,10],[4,7],[-4,7],[-14,10],[-24,14],[-25.5,1],[-24,-12],[-14,-8]],
+          edge:[[24,-12],[25.5,1],[24,14]]},
+    sakalli:{pts:[[-8,-4],[-2,-5],[4,-5],[14,-7],[22,-9],[24,4],[23,22],[16,24],[10,16],[4,8],[-2,8],[-8,8]],edge:[[22,-9],[24,4],[23,22]]}
+  };
+  // Ham → dövülmüş: ham parça %10 kısa, %30 kalın ve ucu küt; dövdükçe uzar, incelir, sivrilir.
+  function bladeGeo(d,p){
+    var n=24, L=d.L*(.9+.1*p), k=1.3-.3*p, bl=(1-p)*2.4, T=[],B=[],M=[],i,mn=1e9,mx=-1e9;
+    for(i=0;i<=n;i++){
+      var u=i/n, t=d.top(u), b=d.bot(u), m=d.single?t+(b-t)*.35:(t+b)/2, tt=m+(t-m)*k, bb=m+(b-m)*k;
+      if(bb-tt<bl){var cc=(tt+bb)/2; tt=cc-bl/2; bb=cc+bl/2;}
+      T.push([u*L,tt]); B.push([u*L,bb]); M.push([u*L,m]); mn=Math.min(mn,tt); mx=Math.max(mx,bb);
+    }
+    return {kind:'blade',L:L,T:T,B:B,M:M,pts:T.concat(B.slice().reverse()),minX:d.tang?-19:0,maxX:L,minY:mn,maxY:mx,
+            tang:!!d.tang,spear:!d.tang,lugs:!!d.lugs};
+  }
+  function axeGeo(d,p){
+    var sx=.78+.22*p, sy=.85+.15*p;
+    function sc(q){return [Math.abs(q[0])>4?q[0]*sx:q[0],q[1]*sy];}
+    var pts=d.pts.map(sc), xs=pts.map(function(q){return q[0];}), ys=pts.map(function(q){return q[1];});
+    return {kind:'axe',pts:pts,edge:d.edge.map(sc),both:!!d.both,
+            minX:Math.min.apply(null,xs),maxX:Math.max.apply(null,xs),minY:Math.min.apply(null,ys),maxY:Math.max.apply(null,ys)};
+  }
+  function partGeo(s,p){var d=SHAPES[s.id];return s.kind==='axe'?axeGeo(d,p):bladeGeo(d,p);}
+  function yAt(arr,x){ // x'e göre sıralı noktalarda doğrusal ara değer
+    if(x<=arr[0][0]) return arr[0][1];
+    for(var i=1;i<arr.length;i++) if(x<=arr[i][0]){var a=arr[i-1],b=arr[i];return lerp(a[1],b[1],(x-a[0])/((b[0]-a[0])||1));}
+    return arr[arr.length-1][1];
+  }
+  function edgeXAt(E,y){ // baltanın (dikey) ağız hattında y'deki x
+    if(y<=E[0][1]) return E[0][0];
+    for(var i=1;i<E.length;i++) if(y<=E[i][1]){var a=E[i-1],b=E[i];return lerp(a[0],b[0],(y-a[1])/((b[1]-a[1])||1));}
+    return E[E.length-1][0];
+  }
+  function tintOf(o){
+    var heat=o.heat||0, hk=clamp((heat-.15)/.45,0,1), hc=heatColor(heat);
+    if(o.tintCol){hc=o.tintCol;hk=o.tintK;}
+    return {hk:hk,hc:hc,H:function(c){return hk>0?mix(c,hc,hk):c;}};
+  }
+  // Metal parçayı parça çerçevesinde çizer: iki tonlu gövde (sırtın üstü ışık, altı gölge), malzeme deseni, sırt çizgisi,
+  // kılıçta sap ucu, mızrakta bilezikli yuva (+kanatlar), baltada göz; bilendikçe ağız parlar.
+  function drawPart(G,st,o){
+    var O='#1a1210', t=tintOf(o), H=t.H, i, dark=H(mix(st.blade,'#20242a',.3));
+    if(st.glow&&t.hk<.5){g.globalAlpha=.12+.05*Math.sin(T*3);g.fillStyle=st.glow;g.beginPath();g.arc((G.minX+G.maxX)/2,(G.minY+G.maxY)/2,(G.maxX-G.minX)*.35,0,Math.PI*2);g.fill();g.globalAlpha=1;}
+    if(G.tang){g.fillStyle=O;g.fillRect(-19,G.M[0][1]-2.5,20,5);g.fillStyle=H(mix(st.blade,'#20242a',.4));g.fillRect(-18,G.M[0][1]-1.5,19,3);}
+    if(G.lugs){
+      g.fillStyle=O; poly([[9,-3],[7,-10.5],[13.5,-3.5]]); poly([[9,3],[7,10.5],[13.5,3.5]]);
+      g.fillStyle=dark; poly([[9.5,-3],[8,-9],[12.5,-3.5]]); poly([[9.5,3],[8,9],[12.5,3.5]]);
+    }
+    g.strokeStyle=O; g.lineWidth=2; pathOf(G.pts); g.stroke();
+    g.fillStyle=H(mix(st.blade,'#ffffff',.28)); poly(G.pts);
+    g.save(); pathOf(G.pts); g.clip();
+    g.fillStyle=dark;
+    if(G.kind==='axe') g.fillRect(-40,2,80,40); else poly(G.M.concat(G.B.slice().reverse()));
+    g.globalAlpha=1-t.hk*.85;
+    if(G.kind==='axe'){g.translate(0,G.maxY);drawPattern(st,G.maxY-G.minY,26,-(G.maxY-G.minY));}
+    else{g.rotate(Math.PI/2);drawPattern(st,G.L,6,-G.L);}
+    g.restore(); g.globalAlpha=1;
+    if(G.kind==='blade'){
+      var n=G.M.length-1;
+      for(i=G.spear?6:1;i<n-2;i++){var a=G.M[i],b=G.M[i+1];
+        g.fillStyle=H(mix(st.blade,'#ffffff',.55)); g.fillRect(a[0],a[1]-1,b[0]-a[0]+.5,1);
+        g.fillStyle=H(mix(st.blade,'#20242a',.5));  g.fillRect(a[0],a[1],b[0]-a[0]+.5,1);}
+      if(G.spear){g.fillStyle=O;g.fillRect(1,-4.5,2,9);g.fillRect(7,-4.5,2,9);g.fillStyle=st.guardCol;g.fillRect(1.5,-4,1,8);g.fillRect(7.5,-4,1,8);}
+    }
+    var sh=o.sharp||0; g.fillStyle='rgba(255,255,255,'+(.3+.55*sh)+')';
+    if(G.kind==='axe'){
+      var E=G.edge;
+      for(var yy=Math.ceil(E[0][1]);yy<=E[E.length-1][1];yy++){var ex=Math.round(edgeXAt(E,yy));g.fillRect(ex-1,yy,1,1);if(G.both)g.fillRect(-ex,yy,1,1);}
+      g.fillStyle=O; g.fillRect(-3,-3,6,9); // göz
+      g.fillStyle=H(mix(st.blade,'#20242a',.15)); g.fillRect(-4,-4,1,11); g.fillRect(3,-4,1,11);
+    } else for(i=1;i<G.B.length-1;i++) g.fillRect(Math.round(G.B[i][0]),Math.round(G.B[i][1])-1,2,1);
+    if(o.tintCol?o.glowCol:t.hk>.3){g.globalAlpha=.25*t.hk;g.fillStyle=t.hc;g.beginPath();g.arc((G.minX+G.maxX)/2,(G.minY+G.maxY)/2,Math.max(16,(G.maxX-G.minX)*.45),0,Math.PI*2);g.fill();g.globalAlpha=1;}
+  }
+  // Kabzalar (silahın yerel çerçevesinde: ağız yukarıda, kabza y>0'da aşağı doğru)
+  function drawHilt(type,st,gem){
+    var O='#1a1210', gc=st.guardCol, i;
+    function wrap(y0,n,w){g.fillStyle=O;g.fillRect(-w/2-1,y0-1,w+2,n+2);for(i=0;i<n;i++){g.fillStyle=st.grip[(i%4<2)?0:1];g.fillRect(-w/2,y0+i,w,1);}}
+    if(type==='tsuba'){ // katana: habaki + yuvarlak tsuba + uzun ito sargı + kashira
+      wrap(4,24,6);
+      g.fillStyle=mix(st.grip[1],'#ffffff',.4); for(i=0;i<24;i+=4) g.fillRect(-1,5+i,2,2); // ito düğümleri
+      g.fillStyle=O; g.fillRect(-10,-.5,20,5); g.fillStyle=gc; g.fillRect(-9,0,18,4);
+      g.fillStyle=mix(gc,'#ffffff',.35); g.fillRect(-9,0,18,1); g.fillStyle=mix(gc,'#000000',.35); g.fillRect(-9,3,18,1);
+      g.fillStyle='#c79c45'; g.fillRect(-2.5,-4,5,4);
+      g.fillStyle=O; g.fillRect(-4,28,8,4); g.fillStyle=gc; g.fillRect(-3,28.5,6,3); g.fillStyle=gem; g.fillRect(-1,29,2,2);
+    } else if(type==='osmanli'){ // uçları aşağı kıvrık kısa balçak + tabanca kabza
+      wrap(4,15,6);
+      g.fillStyle=O; g.fillRect(-10,-.5,20,5); g.fillRect(-11,2,3,5); g.fillRect(8,2,3,5);
+      g.fillStyle=gc; g.fillRect(-9,0,18,3.5); g.fillRect(-10,3,2,3); g.fillRect(8,3,2,3);
+      g.fillStyle=mix(gc,'#ffffff',.35); g.fillRect(-9,0,18,1);
+      g.fillStyle=O; poly([[-4,18],[4,18],[8,24],[3,28],[-4,23]]);
+      g.fillStyle=gc; poly([[-3,19],[3,19],[6.5,24],[3,26.5],[-3,22.5]]);
+      g.fillStyle=gem; g.fillRect(1,21,2,2);
+    } else if(type==='yatagan'){ // pala tipi: uçları helezon kıvrık balçak + ağız tarafına eğik ahşap tabanca kabza + pirinç uç
+      g.fillStyle=O; g.fillRect(-9,-.5,18,4.5); g.fillStyle=gc; g.fillRect(-8,0,16,3); g.fillStyle=mix(gc,'#ffffff',.4); g.fillRect(-8,0,16,1);
+      g.lineWidth=2.8; g.strokeStyle=O;
+      g.beginPath(); g.arc(-10.5,-1.2,2.6,0,Math.PI*1.7); g.stroke(); g.beginPath(); g.arc(10.5,4.2,2.6,Math.PI,Math.PI*2.7); g.stroke();
+      g.lineWidth=1.4; g.strokeStyle=gc;
+      g.beginPath(); g.arc(-10.5,-1.2,2.6,0,Math.PI*1.7); g.stroke(); g.beginPath(); g.arc(10.5,4.2,2.6,Math.PI,Math.PI*2.7); g.stroke();
+      g.fillStyle=O; poly([[-3.5,3],[3.5,3],[4.5,14],[8,20],[6,24],[1,22],[-3,16]]);
+      g.fillStyle=st.grip[0]; poly([[-2.5,4],[2.5,4],[3.5,14],[6.8,20],[5.5,22.5],[1.2,20.8],[-2,15.5]]);
+      g.fillStyle=st.grip[1]; poly([[-2.5,4],[-.5,4],[0,15],[-2,15.5]]);
+      g.fillStyle=gc; g.fillRect(0,8,1,1); g.fillRect(1,12,1,1); // pimler
+      g.fillStyle=O; poly([[4.5,19],[9,20],[7.5,25],[3.5,23]]); g.fillStyle=gc; poly([[5,20],[8,20.7],[7,24],[4.2,22.6]]);
+      g.fillStyle=gem; g.fillRect(5.5,21.5,1.5,1.5);
+    } else if(type==='hancer'){ // uçları toplu haç balçak + süslü orta blok + spiral tel sargılı kabza + top topuz
+      g.fillStyle=O; poly([[-11,0],[-4,-1.5],[4,-1.5],[11,0],[11,3],[4,4.5],[-4,4.5],[-11,3]]);
+      g.fillStyle=gc; poly([[-10,.5],[-4,-.5],[4,-.5],[10,.5],[10,2.5],[4,3.5],[-4,3.5],[-10,2.5]]);
+      g.fillStyle=mix(gc,'#ffffff',.4); g.fillRect(-10,.5,20,1);
+      [-11.5,11.5].forEach(function(bx){g.fillStyle=O;g.beginPath();g.arc(bx,1.5,3,0,Math.PI*2);g.fill();g.fillStyle=gc;g.beginPath();g.arc(bx,1.5,2.1,0,Math.PI*2);g.fill();g.fillStyle='#ffffff';g.fillRect(bx-1,0,1,1);});
+      g.fillStyle=O; g.fillRect(-3.5,-2.5,7,8); g.fillStyle=gc; g.fillRect(-2.5,-1.5,5,6);
+      g.fillStyle=mix(gc,'#000000',.35); poly([[0,-1],[2,1.5],[0,4],[-2,1.5]]);
+      g.fillStyle=O; g.fillRect(-3.5,5,7,14); g.fillStyle=st.grip[0]; g.fillRect(-2.5,5.5,5,13); g.fillStyle=st.grip[1]; g.fillRect(-2.5,5.5,1,13);
+      g.fillStyle=mix(gc,'#ffffff',.3); for(i=0;i<12;i+=2.6){g.fillRect(-2.5,6+i,2,1);g.fillRect(-.5,6.7+i,2,1);g.fillRect(1.5,7.4+i,1,1);} // spiral tel
+      g.fillStyle=O; g.fillRect(-2.5,18.5,5,3); g.fillStyle=gc; g.fillRect(-1.5,19,3,2);
+      g.fillStyle=O; g.beginPath(); g.arc(0,24.5,5,0,Math.PI*2); g.fill(); g.fillStyle=gc; g.beginPath(); g.arc(0,24.5,4,0,Math.PI*2); g.fill();
+      g.fillStyle=mix(gc,'#ffffff',.5); g.fillRect(-2,22,2,1); g.fillStyle=gem; g.fillRect(-1,24,2,2);
+    } else if(type==='kopis'){ // kısa kılıç: çentikli küçük koruma + sırta kavisli bilezikli sargı + öne kıvrık kanca topuz, halka, püskül
+      g.fillStyle=O; poly([[-7,-1],[7,-1],[6,4],[1,4],[0,2.5],[-1,4],[-6,4]]);
+      g.fillStyle=gc; poly([[-6,0],[6,0],[5,3],[1,3],[0,1.5],[-1,3],[-5,3]]);
+      g.fillStyle=mix(gc,'#ffffff',.4); g.fillRect(-6,0,12,1);
+      for(i=0;i<16;i++){var kx=-(i*i)/90; g.fillStyle=O; g.fillRect(kx-3.5,4+i,7,1); g.fillStyle=(i%5===4)?gc:st.grip[(i%4<2)?0:1]; g.fillRect(kx-2.5,4+i,5,1);}
+      var hx=-2.8;
+      g.fillStyle=O; poly([[hx-3.5,19],[hx+3.5,19],[hx+8,22.5],[hx+6,26],[hx+2.5,23.5],[hx-3.5,23.5]]);
+      g.fillStyle=gc; poly([[hx-2.5,20],[hx+2.5,20],[hx+6.5,22.8],[hx+5.4,24.6],[hx+2.2,22.4],[hx-2.5,22.4]]);
+      g.fillStyle=mix(gc,'#ffffff',.4); g.fillRect(hx-2.5,20,5,1);
+      g.strokeStyle=gc; g.lineWidth=1.2; g.beginPath(); g.arc(hx+5.5,27.5,1.8,0,Math.PI*2); g.stroke(); // halka
+      for(i=0;i<4;i++){g.fillStyle=i%2?gem:mix(gem,'#000000',.3);g.fillRect(hx+4+i,29.5,1,5+(i%2)+Math.round(Math.sin(T*3+i)));} // püskül
+    } else { // şövalye / kısa kılıç: metalin kendi balçağı + sargı + topuz
+      drawGuard(st,gem);
+      g.fillStyle=O; g.fillRect(-4,7,8,15);
+      for(i=0;i<13;i++){g.fillStyle=st.grip[(i%4<2)?0:1];g.fillRect(-3,8+i,6,1);}
+      drawPommel(st,gem);
+    }
+  }
+  // Ahşap sap: top'tan (eksi y) +30'a; elde sargı; baltada topuz, mızrakta demir dip ucu.
+  function drawHaft(st,top,off,axe){
+    var O='#1a1210', wood=st.shaft||'#7a4a26', len=30-top, i;
+    g.save(); g.translate(0,off);
+    g.fillStyle=O; g.fillRect(-3,top,6,len);
+    g.fillStyle=wood; g.fillRect(-2,top+1,4,len-2);
+    g.fillStyle=mix(wood,'#ffffff',.25); g.fillRect(-2,top+1,1,len-2);
+    if(st.rings){g.fillStyle='#8a9099';g.fillRect(-3,top+len*.35,6,2);g.fillRect(-3,top+len*.6,6,2);}
+    for(i=0;i<14;i++){g.fillStyle=st.grip[(i%4<2)?0:1];g.fillRect(-2,10+i,4,1);}
+    if(axe){g.fillStyle=O;g.fillRect(-3.5,26,7,4);g.fillStyle=st.guardCol;g.fillRect(-2.5,26,5,3);}
+    else{g.fillStyle=O;poly([[-3.5,26],[3.5,26],[3.5,30],[0,36],[-3.5,30]]);g.fillStyle='#8a9099';poly([[-2.5,27],[2.5,27],[2.5,30],[0,34.5],[-2.5,30]]);}
+    g.restore();
+  }
+  // Bütün silah (yerel çerçeve: ağız/uç yukarıda). o: bare (yalnız metal), len (balta/mızrak sap boyu), gripOff (birleştirirken
+  // kabza/sap kayar), scale, flip, glow, gem, sharp, heat/tintCol, p (dövme ilerlemesi), sub (alt tür).
+  function drawWeaponAt(x,y,rot,st,o){
+    o=o||{}; var s=o.sub||WS(), G=partGeo(s,o.p===undefined?1:o.p), O='#1a1210', off=o.gripOff||0, i;
+    g.save(); g.translate(x,y); g.rotate(rot); if(o.flip) g.scale(-1,1); if(o.scale) g.scale(o.scale,o.scale);
+    if(s.kind==='axe'){
+      var HL=o.len||84;
+      if(o.glow){g.globalAlpha=.22;g.fillStyle=o.glow;g.beginPath();g.arc(6,-HL+6,44,0,Math.PI*2);g.fill();g.globalAlpha=1;}
+      if(!o.bare) drawHaft(st,-HL-8,off,true);
+      g.save(); g.translate(0,-HL); drawPart(G,st,o);
+      if(!o.bare){g.translate(0,off);g.fillStyle=st.shaft||'#7a4a26';g.fillRect(-2,-3,4,9);g.fillStyle=O;g.fillRect(-2.5,-7,5,3);g.fillStyle=st.guardCol;g.fillRect(-2,-6.5,4,2);}
+      g.restore();
+    } else {
+      var SL=s.kind==='spear'?(o.len||0):0;
+      if(o.glow){g.globalAlpha=.22;g.fillStyle=o.glow;g.beginPath();g.arc(0,-SL-G.L/2,44,0,Math.PI*2);g.fill();g.globalAlpha=1;}
+      if(s.kind==='spear'&&!o.bare) drawHaft(st,-SL-6,off,false);
+      g.save(); g.translate(0,-SL); g.rotate(-Math.PI/2); drawPart(G,st,o); g.restore();
+      if(s.kind==='spear'&&!o.bare){ // püskül
+        var gem=o.gem||st.patCol;
+        for(i=0;i<4;i++){g.fillStyle=i%2?gem:mix(gem,'#000000',.3);g.fillRect(-3+i*2,-SL+1,1,5+(i%2)*2+Math.round(Math.sin(T*3+i)));}
+      }
+      if(s.kind==='blade'&&!o.bare){g.save();g.translate(0,off);drawHilt(s.hilt,st,o.gem||st.patCol);g.restore();}
+    }
+    g.restore();
+  }
+
+  // ---------- ISIT sahnesi: raylı vinç + zincirde asılı pota + kor yatağı + deri körük ----------
+  // Pota, mangalda demire asılı çaydanlık gibi közlerin üstünde durur; raydaki makaralı arabaya zincirle bağlıdır.
+  var RIG={railY:52,px:88,py:128};
+  function drawRig(h,pump,flame,full){
+    var O='#1a1210', x, k, cy;
+    // direkler + ray (I-kiriş)
+    g.fillStyle=O; g.fillRect(7,RIG.railY-2,6,140); g.fillRect(145,RIG.railY-2,6,140);
+    g.fillStyle='#4a4f57'; g.fillRect(8,RIG.railY,4,137); g.fillRect(146,RIG.railY,4,137);
+    g.fillStyle='#5f646c'; g.fillRect(8,RIG.railY,1,137); g.fillRect(146,RIG.railY,1,137);
+    g.fillStyle=O; g.fillRect(3,RIG.railY-5,152,9);
+    g.fillStyle='#5f646c'; g.fillRect(4,RIG.railY-4,150,7);
+    g.fillStyle='#8a9099'; g.fillRect(4,RIG.railY-4,150,1);
+    g.fillStyle='#3a3e45'; g.fillRect(4,RIG.railY+1,150,1);
+    for(x=10;x<152;x+=12){g.fillStyle='#2e3238';g.fillRect(x,RIG.railY-2,1,1);g.fillRect(x,RIG.railY+2,1,1);}
+    // makaralı araba
+    var tx=RIG.px, ty=RIG.railY-4;
+    g.fillStyle=O; g.fillRect(tx-9,ty-7,18,8); g.beginPath(); g.arc(tx-5,ty-1,3.5,0,Math.PI*2); g.arc(tx+5,ty-1,3.5,0,Math.PI*2); g.fill();
+    g.fillStyle='#8a6a2a'; g.fillRect(tx-8,ty-6,16,5); g.fillStyle='#b08a3a'; g.fillRect(tx-8,ty-6,16,1);
+    g.fillStyle='#8a9099'; g.beginPath(); g.arc(tx-5,ty-1,2.2,0,Math.PI*2); g.fill(); g.beginPath(); g.arc(tx+5,ty-1,2.2,0,Math.PI*2); g.fill();
+    g.fillStyle=O; g.fillRect(tx-2,RIG.railY+4,4,4);
+    // zincir
+    for(cy=RIG.railY+8,k=0;cy<RIG.py-29;cy+=4,k++){ // zincir potanın kulpuna kadar iner
+      g.fillStyle=O; g.fillRect(tx-(k%2?1.5:2.5),cy,k%2?3:5,4);
+      g.fillStyle='#8a9099'; if(k%2) g.fillRect(tx-.5,cy+.5,1,3); else {g.fillRect(tx-1.5,cy+.5,1,3);g.fillRect(tx+.5,cy+.5,1,3);}
+    }
+    drawForgeBed(flame);
+    drawHangingPot(h,full);
+    drawBellows(pump);
+  }
+  function drawForgeBed(intensity){
+    var O='#1a1210', i, r;
+    g.fillStyle=O; g.fillRect(44,158,90,33);
+    for(r=0;r<3;r++) for(i=0;i<9;i++){g.fillStyle=(i+r)%2?'#5a4a40':'#4a3c34';g.fillRect(45+i*10-(r%2?5:0),160+r*10,9,9);}
+    g.fillStyle=O; g.fillRect(44,158,1,33); g.fillRect(133,158,1,33);
+    // kor yatağı
+    for(i=0;i<16;i++){var hg=3+(i*7)%3;g.fillStyle=mix('#5a1a08','#ffb03a',clamp(.3+.6*intensity*(.6+.4*Math.sin(T*6+i*1.3)),0,1));g.fillRect(49+i*5,160-hg,5,hg);}
+    // alevler potanın dibine doğru
+    for(i=0;i<8;i++){
+      var fh=(6+Math.sin(T*12+i*1.7)*3+Math.random()*3)*intensity*1.6;
+      g.fillStyle=i%2?'#ff8a2a':'#ffc23a'; g.fillRect(66+i*6,157-fh,4,fh);
+      if(fh>8){g.fillStyle='#fff0b0';g.fillRect(67+i*6,157-fh*.6,2,fh*.4);}
+    }
+    g.globalAlpha=.14*intensity; g.fillStyle='#ff8a2a'; g.beginPath(); g.arc(89,150,46,0,Math.PI*2); g.fill(); g.globalAlpha=1;
+  }
+  function drawHangingPot(h,full){
+    var x=RIG.px, y=RIG.py, O='#1a1210';
+    g.strokeStyle=O; g.lineWidth=3; g.beginPath(); g.moveTo(x-17,y-12); g.quadraticCurveTo(x,y-44,x+17,y-12); g.stroke();
+    g.strokeStyle='#8a9099'; g.lineWidth=1; g.beginPath(); g.moveTo(x-17,y-12); g.quadraticCurveTo(x,y-44,x+17,y-12); g.stroke();
+    g.save(); g.translate(x,y);
+    g.fillStyle='#120e0c'; poly([[-18,-16],[16,-16],[22,-19],[19,-13],[14,12],[10,15],[-10,15],[-14,12]]);
+    g.fillStyle='#3a3432'; poly([[-17,-15],[15,-15],[20.5,-17.5],[18,-13],[13,11],[9.5,14],[-9.5,14],[-13,11]]);
+    g.fillStyle='#4e4642'; poly([[-17,-15],[-14.5,-15],[-11,11],[-13,11]]);
+    g.fillStyle='#55504c'; g.fillRect(-17,-15,32,2);
+    g.globalAlpha=clamp(h*.8,0,.8); g.fillStyle=heatColor(h); poly([[-13,4],[13,4],[13,11],[9.5,14],[-9.5,14],[-13,11]]); g.globalAlpha=1; // dibi kızarır
+    g.fillStyle=full?heatColor(h):'#1e1a18'; g.beginPath(); g.ellipse(-1,-13,14,2.5,0,0,Math.PI*2); g.fill();
+    if(full&&h>.35){g.globalAlpha=.3*h;g.fillStyle=heatColor(h);g.beginPath();g.arc(-1,-14,18,0,Math.PI*2);g.fill();g.globalAlpha=1;}
+    g.fillStyle=O; g.fillRect(-19,-14,4,4); g.fillRect(15,-14,4,4); // kulp kulakları
+    g.restore();
+  }
+  // Deri körük: kama biçimli, katlanır; üst tahtanın kolu bastırılınca hava borudan ocağa üfler. pump: 0 açık → 1 basılı
+  function drawBellows(pump){
+    var O='#1a1210', x0=6, x1=44, base=184, hgt=4+14*(1-pump), topL=base-hgt, topR=base-hgt*.35, i;
+    g.fillStyle=O; g.fillRect(x0-1,base-1,x1-x0+2,6); g.fillStyle='#6b4424'; g.fillRect(x0,base,x1-x0,4);
+    g.fillStyle='#4a2e1a'; g.fillRect(x0+2,base+4,4,6); g.fillRect(x1-6,base+4,4,6);
+    g.fillStyle=O; poly([[x0,base],[x0,topL-1],[x1,topR-1],[x1,base]]);
+    g.fillStyle='#7a3e1e'; poly([[x0+1,base],[x0+1,topL],[x1-1,topR],[x1-1,base]]);
+    for(i=1;i<4;i++){var fy=base-(base-topL)*i/4;g.fillStyle='#5a2a12';g.fillRect(x0+1,fy,x1-x0-2-i*3,1);g.fillStyle='#9a5a2e';g.fillRect(x0+1,fy-1,x1-x0-2-i*3,1);} // kıvrımlar
+    g.fillStyle=O; poly([[x0-2,topL-4],[x1+1,topR-3],[x1+1,topR],[x0-2,topL]]);
+    g.fillStyle='#8a5a32'; poly([[x0-1,topL-3],[x1,topR-2],[x1,topR-1],[x0-1,topL-1]]);
+    var hx=x0+3, hy=topL-4; // kol + tutamak
+    g.fillStyle=O; g.fillRect(hx-2,hy-34,5,34); g.fillStyle='#6b4424'; g.fillRect(hx-1,hy-33,3,33);
+    g.fillStyle=O; g.fillRect(hx-5,hy-38,11,5); g.fillStyle='#8a5a32'; g.fillRect(hx-4,hy-37,9,3);
+    g.fillStyle=O; g.fillRect(x1,base-5,14,5); g.fillStyle='#5f646c'; g.fillRect(x1,base-4,14,3); g.fillStyle='#8a9099'; g.fillRect(x1,base-4,14,1); // hava borusu
+  }
+
+  // ---------- envanter: cevherler + yapılan silahlar (bu tarayıcıda saklanır) ----------
+  // Potaya yalnız envanterdeki cevher atılır ve envanterden düşer; biten silah envantere girer.
+  // Silah geri eritilebilir ama her eritmede 3 cevherden biri kaybolur (yaptıkça-erittikçe malzeme azalır).
+  var INV_KEY='demirusta_envanter', START_ORES={demir:6,celik:3,mitril:1}, ORE_NAME={demir:'Demir cevheri',celik:'Çelik külçesi',mitril:'Mitril kristali'};
+  var INV=loadInv();
+  function loadInv(){
+    try{var v=JSON.parse(localStorage.getItem(INV_KEY)||'null'); if(v&&v.ores&&v.weapons) return v;}catch(e){}
+    return {ores:Object.assign({},START_ORES),weapons:[]};
+  }
+  function saveInv(){try{localStorage.setItem(INV_KEY,JSON.stringify({ores:INV.ores,weapons:INV.weapons}));}catch(e){}}
+  function slotUse(k,except){var n=0;S.slots.forEach(function(s,i){if(s===k&&i!==except)n++;});return n;}
+  function canUse(k,i){return INV.ores[k]-slotUse(k,i)>0;} // i. yuvaya k cevheri konabilir mi (diğer yuvalar düşülünce)
+  function oreTotal(){return MKEYS.reduce(function(a,k){return a+INV.ores[k];},0);}
+  function fixSlots(){S.slots.forEach(function(s,i){if(!canUse(s,i)){var alt=MKEYS.filter(function(k){return canUse(k,i);})[0];if(alt)S.slots[i]=alt;}});}
+  function slotsOk(){return S.slots.every(function(s,i){return canUse(s,i);});}
+  function meltWeapon(idx){
+    var w=INV.weapons[idx]; if(!w) return;
+    var lost=Math.floor(Math.random()*w.slots.length), back=w.slots.filter(function(_,i){return i!==lost;});
+    back.forEach(function(k){INV.ores[k]++;});
+    INV.weapons.splice(idx,1); saveInv();
+    INV.msg='🔥 <b>'+w.ad+'</b> eritildi → geri: '+back.map(function(k){return ORE_NAME[k];}).join(', ')+
+            ' · <span style="color:#ff9a5a">kayıp: '+ORE_NAME[w.slots[lost]]+'</span>';
+    if(S.phase===0){fixSlots();PH[0].ui();}
+    renderInv();
+  }
+  function renderInv(){
+    var el=$('inv'); if(!el) return;
+    var ores=MKEYS.map(function(k){
+      return '<span class="ore" style="border-color:'+METALS[k].ingot+'">'+ORE_NAME[k]+' <b>×'+INV.ores[k]+'</b></span>';}).join('');
+    var ws=INV.weapons.map(function(w,i){return {w:w,i:i};}).reverse().map(function(o){
+      var t=TIERS[o.w.tier];
+      return '<div class="wrow"><span><b style="color:'+t[1]+'">'+o.w.ad+'</b><br><small>'+t[0]+' · '+o.w.tur+' · '+o.w.metal+' · 🪙 '+o.w.deger.toLocaleString('tr-TR')+'</small></span>'+
+             '<button class="btn melt" data-melt="'+o.i+'">🔥 Erit</button></div>';}).join('');
+    el.innerHTML='<div class="invh">🎒 Envanter</div><div class="ores">'+ores+'</div>'+
+      (INV.msg?'<div class="imsg">'+INV.msg+'</div>':'')+
+      '<div class="invs">Silahlar ('+INV.weapons.length+') — eritince 3 cevherden 1\'i kaybolur</div>'+
+      (ws||'<div class="empty">Henüz silah yok.</div>')+
+      '<button class="btn reset" id="invreset">↺ Başlangıç stoğu</button>';
+  }
+
+  // =====================================================================
+  // 0) MALZEME — potaya 3 külçe (karışım = alaşım)
+  // =====================================================================
+  var PH=[];
+  PH[0]={
+    enter:function(){P={};this.ui();},
+    ui:function(){
+      fixSlots();
+      var A=alloy(S.slots), self=this;
+      var isi=A.zw>.11?'geniş':A.zw>.07?'orta':'dar';
+      if(oreTotal()<3){ // yetersiz cevher
+        setText('Potaya at','<b style="color:#ff9a5a">Envanterde yeterli cevher yok</b> (3 gerekir).<br>Aşağıdan bir silahı <b>erit</b> ya da başlangıç stoğuna dön.');
+        setBar([]); renderInv(); return;
+      }
+      setText('Potaya at','<b>'+A.ad+'</b> · '+A.bulunur+(A.mixed?' alaşım':'')+(A.mixed&&!FOUND[A.key]?' <span class="found">(keşfedilmedi!)</span>':'')+
+        '<br>Kademe aralığı: <b style="color:'+TIERS[A.minT][1]+'">'+TIERS[A.minT][0]+'</b> – <b style="color:'+TIERS[A.maxT][1]+'">'+TIERS[A.maxT][0]+'</b>'+
+        ' · Isı bölgesi: '+isi);
+      setBar([
+        {title:'Kum kalıbı — ne dökülecek?',btns:WKEYS.map(function(k){return {t:WEAPONS[k].ad,sel:S.wt===k,fn:function(){S.wt=k;S.sub=WEAPONS[k].subs[0].id;self.ui();}};})},
+        {title:'Biçim',btns:WEAPONS[S.wt].subs.map(function(sb){return {t:sb.ad,sel:WS().id===sb.id,fn:function(){S.sub=sb.id;self.ui();}};})},
+        {title:'Pota — yuvaya dokun, envanterdeki cevherden seç',btns:S.slots.map(function(k,i){
+          return {t:(i+1)+'. '+METALS[k].ad,cls:'slot',border:METALS[k].ingot,fn:function(){
+            for(var j=1;j<=MKEYS.length;j++){var k2=MKEYS[(MKEYS.indexOf(k)+j)%MKEYS.length];if(canUse(k2,i)){S.slots[i]=k2;break;}} // yalnız stokta olanlar
+            self.ui();
+          }};
+        })},
+        {title:'Kömür (ısınma hızı)',btns:Object.keys(COAL).map(function(k){return {t:COAL[k].ad,sel:S.coal===k,fn:function(){S.coal=k;self.ui();}};})},
+        {btns:[{t:'🔥 Potaya at',go:true,dis:oreTotal()<3||!slotsOk(),fn:function(){
+          S.slots.forEach(function(k){INV.ores[k]--;}); INV.msg=null; saveInv(); // cevherler envanterden düşer
+          S.A=alloy(S.slots); go(1);
+        }}]}
+      ]);
+    },
+    draw:function(){
+      g.drawImage(room,0,0);
+      drawRig(0,0,.5,false);
+      for(var i=0;i<3;i++){
+        var bob=Math.sin(T*3+i)*2, x=RIG.px-38+i*24;
+        drawPiece(S.slots[i],x,72+bob);
+        if(S.slots[i]==='mitril' && Math.random()<.1) parts.push({x:x+Math.random()*14,y:72+bob,vx:0,vy:-8,life:.5,max:.5,col:'#e6ffff',sz:1,grav:0});
+      }
+      g.fillStyle='#111'; for(var c2=0;c2<{az:1,orta:2,cok:3}[S.coal];c2++) g.fillRect(112+c2*7,151,6,5);
+      // seçilen kalıbın biçimi (dövülmüş hâli) duvardaki levhada
+      var pv=partGeo(WS(),1), pw=pv.maxX-pv.minX, ps=Math.min(1,100/pw);
+      g.fillStyle='#1a1210'; g.fillRect(24,10,112,32); g.fillStyle='#4a2e1a'; g.fillRect(25,11,110,30);
+      g.save(); g.translate(80-(pv.minX+pw/2)*ps,26-((pv.minY+pv.maxY)/2)*ps); g.scale(ps,ps);
+      drawPart(pv,alloy(S.slots).st,{}); g.restore();
+    }
+  };
+
+  // =====================================================================
+  // 1) ISIT — körüğü basılı tut, ibreyi ideal bölgede tut
+  // =====================================================================
+  var GX=158, GY0=30, GY1=200, GH=GY1-GY0, FILL_NEED=5, HEAT_TIMEOUT=16;
+  PH[1]={
+    enter:function(){
+      P={h:0,v:0,fill:0,acc:0,t:0,firstIn:-1,pump:0,pt:0,intro:1.1,zc:S.A.zc,kick:1.5};
+      setText('ISIT','Ekrana <b>basılı tut</b> → körük pompalar, ısı yükselir. <b>Bırak</b> → düşer.<br>İbreyi bölgenin <b>ortasında</b> tut. '+
+        (S.A.D>.3?'Kıymetli metalde bölge <b>kayar</b>, ':'')+'kömür patlamaları ibreyi iter!');
+      setBar([]);
+    },
+    update:function(dt){
+      if(P.done) return;
+      if(P.intro>0){ // külçeler potaya düşüyor
+        var before=P.intro; P.intro-=dt;
+        for(var i=0;i<3;i++){var land=1.1-(.25+i*.25);if(before>land&&P.intro<=land)burst(RIG.px,RIG.py-16,6,['#8a8070','#ffcf8a'],30,80,.4);}
+        return;
+      }
+      var m=S.A, k=COAL[S.coal].k, D=m.D;
+      P.zc=m.zc+D*(.05*Math.sin(P.t*.9)+.03*Math.sin(P.t*2.3+1)); // bölge kayması
+      if(ptr.down) P.v+=.9*m.agi*k*dt; else P.v-=.75*m.agi*dt;
+      P.v-=.05*dt;
+      P.kick-=dt;
+      if(P.kick<=0){ // kömür patlaması: ibreye ani itme
+        P.kick=Math.max(.6,1.2+Math.random()*1.3-D*.6);
+        var push=(Math.random()<.5?-1:1)*(.08+.25*D);
+        P.v+=push;
+        label(push>0?'çıt!':'fıss…',push>0?'#ffcf8a':'#9fc8ff',104+Math.random()*20,150);
+        burst(89,156,push>0?8:4,push>0?['#ffc23a','#fff6d8']:['#8a8070'],45,60,.4);
+      }
+      P.v*=Math.exp(-2.5*dt);
+      P.h+=P.v*dt;
+      if(P.h<0){P.h=0;P.v=0;} if(P.h>1){P.h=1;P.v=0;}
+      // körük: basılı tutunca kol inip kalkar (pompalar); her basışta borudan ocağa hava
+      var prev=P.pump;
+      if(ptr.down){P.pt+=dt*8;P.pump+=(.5+.5*Math.sin(P.pt)-P.pump)*Math.min(1,dt*20);}
+      else P.pump+=(0-P.pump)*Math.min(1,dt*8);
+      if(P.pump>prev && Math.random()<dt*40) parts.push({x:58,y:181,vx:30+Math.random()*15,vy:-4-Math.random()*8,life:.45,max:.45,col:'#e8dcc8',sz:1,grav:0});
+      var off=Math.abs(P.h-P.zc)/m.zw, inZ=off<1;
+      P.t+=dt;
+      if(P.firstIn>=0 || inZ){
+        if(P.firstIn<0) P.firstIn=P.t;
+        if(inZ){
+          P.fill+=dt/(FILL_NEED+2*D);
+          P.acc+=dt*(1-.8*off*off); // merkez 1, kenar 0.2
+          if(Math.random()<dt*10) burst(RIG.px-1,RIG.py-15,1,['#ffc23a','#ff8a2a'],18,-10,.5);
+        }
+      }
+      if(P.fill>=1 || P.t>HEAT_TIMEOUT){
+        var span=P.firstIn<0?P.t:P.t-P.firstIn;
+        finish('heat',span>0?P.acc/span:0,2,'ISIT ');
+      }
+    },
+    draw:function(){
+      var m=S.A;
+      g.drawImage(room,0,0);
+      drawRig(P.h,P.pump,.35+.65*clamp(P.v*4+P.pump*.3,0,1),P.intro<=0);
+      if(P.intro>0){ // malzemeler asılı potaya düşer
+        for(var d=0;d<3;d++){
+          var el=1.1-P.intro-d*.25; if(el<0) continue;
+          var fy=Math.min(RIG.py-20,62+el*el*400);
+          if(fy<RIG.py-20) drawPiece(S.slots[d],RIG.px-21+d*9,fy);
+        }
+      }
+      for(var y=0;y<GH;y++){g.fillStyle=heatColor(1-y/GH);g.fillRect(GX,GY0+y,8,1);}
+      var zt=GY1-(P.zc+m.zw)*GH, zb=GY1-(P.zc-m.zw)*GH, zm=GY1-P.zc*GH, inZ=Math.abs(P.h-P.zc)<m.zw;
+      g.strokeStyle=inZ?'#fff':'#ffd54a'; g.lineWidth=1;
+      g.strokeRect(GX-2.5,zt+.5,13,zb-zt-1);
+      g.fillStyle='#fff'; g.fillRect(GX-3,zm,2,1); g.fillRect(GX+9,zm,2,1);
+      if(inZ){g.globalAlpha=.2+.15*Math.sin(T*10);g.fillStyle='#fff';g.fillRect(GX,zt,8,zb-zt);g.globalAlpha=1;}
+      var ny=GY1-P.h*GH;
+      g.fillStyle=inZ?'#fff':'#ffcf8a'; g.beginPath(); g.moveTo(GX-2,ny); g.lineTo(GX-9,ny-4); g.lineTo(GX-9,ny+4); g.fill();
+      g.fillStyle='#120a06'; g.fillRect(GX-1,GY0-1,10,1); g.fillRect(GX-1,GY1,10,1);
+      g.fillStyle='#120a06'; g.fillRect(14,14,128,7);
+      g.fillStyle='#ffc23a'; g.fillRect(15,15,126*clamp(P.fill,0,1),5);
+      g.fillStyle='#ffe9b0'; g.fillRect(15,15,126*clamp(P.fill,0,1),1);
+      g.fillStyle='#9a7b58'; g.font='7px monospace'; g.textAlign='left';
+      g.fillText(m.ad.toLocaleUpperCase('tr-TR')+' · süre '+Math.max(0,HEAT_TIMEOUT-P.t).toFixed(0),14,30);
+      g.fillText('ZORLUK '+'★★★'.slice(0,1+Math.round(m.D*2))+'☆☆☆'.slice(0,2-Math.round(m.D*2)),14,40);
+    }
+  };
+
+  // =====================================================================
+  // 2) DÖK — pota eğilir, metalin hepsi kalıba akar (animasyon; dokununca hızlanır)
+  // =====================================================================
+  var PIV_X=58, PIV_Y=104, MOLD_X0=50, MOLD_X1=142, MOLD_Y=171;
+  var POUR_A=1.0, POUR_B=3.0; // akış başlangıcı / bitişi (sn)
+  PH[2]={
+    enter:function(){
+      P={t:0};
+      setText('DÖK','Pota eğiliyor, erimiş metalin <b>hepsi</b> kalıba akıyor…');
+      setBar([]);
+    },
+    tilt:function(){
+      var t=P.t;
+      if(t<.6) return 0;
+      if(t<POUR_A) return (t-.6)/(POUR_A-.6)*1.15;
+      if(t<POUR_B) return 1.15+.35*(t-POUR_A)/(POUR_B-POUR_A); // boşaldıkça daha çok eğilir
+      if(t<POUR_B+.4) return 1.5*(1-(t-POUR_B)/.4);
+      return 0;
+    },
+    fill:function(){return clamp((P.t-POUR_A-.1)/(POUR_B-POUR_A-.1),0,1);},
+    // Kalıp oyuğu = ham parça (p=0) — DÖV'de örse gelen parçanın birebir aynısı (aynı biçim, aynı boy, aynı ölçek).
+    // Oyuk kutunun dibine oturur; ry: akış kanalının yüksekliği (sap ucu / yuva / göz hizası).
+    mold:function(){
+      var G=partGeo(WS(),0), mx=G.kind==='axe'?MOLD_X0+16-G.minX:MOLD_X0+(G.tang?19:6), my=171-G.maxY;
+      return {G:G,mx:mx,my:my,ry:G.kind==='blade'?my+G.M[0][1]:my+1,x1:mx+G.maxX,y0:my+G.minY};
+    },
+    shape:function(M){
+      var G=M.G, p=G.pts, i;
+      g.rect(MOLD_X0-5,M.ry-1.5,(M.mx+G.minX)-(MOLD_X0-5)+1,3); // akış kanalı
+      if(G.tang) g.rect(M.mx-19,M.ry-2.5,20,5);                // sap ucu
+      g.moveTo(M.mx+p[0][0],M.my+p[0][1]); for(i=1;i<p.length;i++) g.lineTo(M.mx+p[i][0],M.my+p[i][1]); g.closePath();
+    },
+    endX:function(){return this.mold().x1;},
+    update:function(dt){
+      if(P.done) return;
+      P.t+=dt;
+      var f=this.fill();
+      var M=this.mold();
+      if(f>0 && f<1 && Math.random()<dt*40){
+        var fx=MOLD_X0-4+(M.x1-MOLD_X0)*f;
+        parts.push({x:fx,y:M.ry-2,vx:(Math.random()-.5)*30,vy:-20-Math.random()*20,life:.4,max:.4,col:'#ffd54a',sz:1,grav:160});
+      }
+      // sıcak metal değdiği kumdan duman tüter
+      if(f>0 && Math.random()<dt*(f<1?10:5)){
+        var sxm=MOLD_X0-6+Math.random()*(M.x1-(MOLD_X0-6))*f;
+        parts.push({x:sxm,y:M.y0-2,vx:(Math.random()-.5)*4,vy:-8-Math.random()*6,life:1.4,max:1.4,col:'#8a8078',r:1.5,grow:5,grav:-2});
+      }
+      if(P.t>POUR_B+.4 && !P.glowed){P.glowed=true;burst((MOLD_X0+M.x1)/2,M.my,24,['#ffc23a','#fff6d8'],50,60,.7);label('Kalıp doldu!','#ffd54a',96,140);}
+      if(P.t>POUR_B+1.2){P.done=true;go(3);}
+    },
+    down:function(){P.t=Math.max(P.t,POUR_B+.4);},
+    lip:function(){
+      var a=this.tilt(), lx=20, ly=-17; // potanın akıtma ağzının pivota göre konumu
+      return {x:PIV_X+lx*Math.cos(a)-ly*Math.sin(a), y:PIV_Y+lx*Math.sin(a)+ly*Math.cos(a)};
+    },
+    draw:function(){
+      var i;
+      g.drawImage(room,0,0);
+      // masa
+      g.fillStyle='#1a1210'; g.fillRect(29,177,126,10);
+      g.fillStyle='#4a2e1a'; g.fillRect(30,178,124,8); g.fillRect(38,186,6,8); g.fillRect(140,186,6,8);
+      g.fillStyle='#5e3c22'; g.fillRect(30,178,124,1);
+      // kum kalıbı: demir köşebentli tahta çerçeve, kum, kılıç biçimli oyuk + soldaki döküm hunisi
+      var M=this.mold(), bx0=MOLD_X0-12, bx1=M.x1+9, by0=Math.min(M.y0-5,160), by1=177; // kutu dökülen parçanın boyuna göre
+      g.fillStyle='#1a1210'; g.fillRect(bx0-1,by0-1,bx1-bx0+2,by1-by0+1);
+      g.fillStyle='#6b4424'; g.fillRect(bx0,by0,bx1-bx0,by1-by0);
+      g.fillStyle='#8a5a32'; g.fillRect(bx0,by0,bx1-bx0,1);
+      g.fillStyle='#c9a77a'; g.fillRect(bx0+3,by0+3,bx1-bx0-6,by1-by0-5);
+      for(i=0;i<70;i++){g.fillStyle=i%2?'#a8875c':'#ddc49a';g.fillRect(bx0+4+(i*37)%(bx1-bx0-8),by0+4+(i*13)%(by1-by0-8),1,1);}
+      g.fillStyle='#4a4f57';
+      g.fillRect(bx0-1,by0-1,4,4); g.fillRect(bx1-3,by0-1,4,4); g.fillRect(bx0-1,by1-4,4,4); g.fillRect(bx1-3,by1-4,4,4);
+      var self=this;
+      function cavity(){ // huni + akış kanalı + ham parça (örse gelecek olanın aynısı)
+        g.beginPath();
+        g.moveTo(MOLD_X0-8,by0+3); g.lineTo(MOLD_X0+2,by0+3); g.lineTo(MOLD_X0,M.ry+1); g.lineTo(MOLD_X0-5,M.ry+1); g.closePath();
+        self.shape(M);
+      }
+      g.fillStyle='#2a2018'; cavity(); g.fill();
+      g.strokeStyle='#9a7a52'; g.lineWidth=1; cavity(); g.stroke();
+      var f=this.fill(), fx=MOLD_X0-8+(M.x1-(MOLD_X0-8))*f, mc=heatColor(.85-.25*clamp((P.t-POUR_B-.4)/.8,0,1));
+      if(f>0){
+        g.save(); cavity(); g.clip();
+        g.fillStyle=mc; g.fillRect(MOLD_X0-9,by0,fx-(MOLD_X0-9),by1-by0);
+        g.fillStyle=mix(mc,'#ffffff',.45); g.fillRect(MOLD_X0-9,M.y0,fx-(MOLD_X0-9),1);
+        g.restore();
+        g.globalAlpha=.18; g.fillStyle=mc; g.beginPath(); g.arc(MOLD_X0+(fx-MOLD_X0)/2,M.my,30+20*f,0,Math.PI*2); g.fill(); g.globalAlpha=1;
+      }
+      // kalıp doluluk çubuğu
+      g.fillStyle='#120a06'; g.fillRect(14,14,128,7);
+      g.fillStyle='#ffc23a'; g.fillRect(15,15,126*f,5);
+      g.fillStyle='#9a7b58'; g.font='7px monospace'; g.textAlign='left'; g.fillText('KALIP %'+Math.round(f*100),14,30);
+      // akış: pota boşalana kadar
+      if(P.t>POUR_A && f<1){
+        var L=this.lip(), tx=MOLD_X0-3, ty2=by0+4, thin=f>.85?1:2;
+        g.strokeStyle='#ffc23a'; g.lineWidth=thin+1; g.beginPath(); g.moveTo(L.x,L.y);
+        g.quadraticCurveTo(L.x+4,L.y+18,tx,ty2); g.stroke();
+        g.strokeStyle='#fff6d8'; g.lineWidth=1; g.beginPath(); g.moveTo(L.x,L.y);
+        g.quadraticCurveTo(L.x+4,L.y+18,tx,ty2); g.stroke();
+      }
+      var a=this.tilt(), slide=P.t<.6?(1-P.t/.6)*40:0, level=1-f;
+      var cxw=PIV_X-slide, cyw=PIV_Y-slide*.5, ca0=Math.cos(a), sa0=Math.sin(a);
+      // eldivenli el potanın demir sapının ucunu tutar; kol sol yukarıya uzanır
+      var gwx=cxw-46*ca0, gwy=cyw-46*sa0;
+      drawArm(gwx,gwy,gwx-42,gwy-52);
+      g.save(); g.translate(cxw,cyw); g.rotate(a);
+      // demir sap
+      g.fillStyle='#1a1416'; g.fillRect(-50,-2.5,34,5);
+      g.fillStyle='#5f646c'; g.fillRect(-50,-1.5,34,3);
+      g.fillStyle='#8a9099'; g.fillRect(-50,-1.5,34,1);
+      // pota: kalın duvarlı grafit, sağda akıtma ağzı, altı közle parlar
+      g.fillStyle='#120e0c'; poly([[-18,-16],[16,-16],[22,-19],[19,-13],[14,12],[10,15],[-10,15],[-14,12]]);
+      g.fillStyle='#3a3432'; poly([[-17,-15],[15,-15],[20.5,-17.5],[18,-13],[13,11],[9.5,14],[-9.5,14],[-13,11]]);
+      g.fillStyle='#4e4642'; poly([[-17,-15],[-14.5,-15],[-11,11],[-13,11]]);
+      g.fillStyle='#55504c'; g.fillRect(-17,-15,32,2);
+      g.globalAlpha=.35+.15*Math.sin(T*5); g.fillStyle='#ff6a1a'; g.fillRect(-9,11,18,3); g.globalAlpha=1;
+      if(level>0){
+        // erimiş metal potanın içini doldurur; yüzeyi dünyaya göre yatay kalır ve dökülürken düzgünce iner
+        var C=[[-14,-13],[14,-13],[11,9],[-11,9]], sa=Math.sin(a), ca=Math.cos(a);
+        var ys=C.map(function(p){return p[0]*sa+p[1]*ca;}), ymin=Math.min.apply(null,ys), ymax=Math.max.apply(null,ys);
+        var surf=ymax-(ymax-ymin)*level; // seviye yalnızca dökülen miktarla iner: başta ağzına kadar dolu
+        g.save(); g.fillStyle='#1e1a18'; poly(C.map(function(p){return [p[0]*.94,p[1]*.94];})); g.clip();
+        g.rotate(-a);
+        g.fillStyle=heatColor(.78); g.fillRect(-30,surf,60,40);
+        g.fillStyle=heatColor(.95); g.fillRect(-30,surf,60,1.5);
+        g.globalAlpha=.5; g.fillStyle='#fff6d8'; g.fillRect(-30+((T*30)%20),surf,8,1); g.globalAlpha=1;
+        g.restore();
+      }
+      // potayı saran demir kucak halkası
+      g.fillStyle='#1a1416'; g.fillRect(-19,-5,38,5);
+      g.fillStyle='#5f646c'; g.fillRect(-18,-4,36,3);
+      g.fillStyle='#8a9099'; g.fillRect(-18,-4,36,1);
+      g.fillStyle='#c9ced6'; g.fillRect(-15,-3,1,1); g.fillRect(14,-3,1,1);
+      g.restore();
+      drawFist(gwx,gwy,a+Math.PI/2);
+      if(level>0){g.globalAlpha=.15*level; g.fillStyle='#ff8a2a'; g.beginPath(); g.arc(PIV_X,PIV_Y,30,0,Math.PI*2); g.fill(); g.globalAlpha=1;}
+    }
+  };
+
+  // =====================================================================
+  // 3) DÖV — parlayan noktaya, halka iç çembere oturduğu anda vur
+  // =====================================================================
+  var N_HITS=10, RING_DUR=1.15, IDEAL=.85, XS=[52,124,70,106,88,60,116,78,98,132];
+  PH[3]={
+    enter:function(){
+      P={i:0,target:null,wait:.6,res:[],sw:-1,hx:90,hy:150,shake:0,flash:0,fx:90,marks:[],combo:0,best:0};
+      setText('DÖV','Parlayan noktaya, <b>dış halka iç çembere oturduğu anda</b> dokun.<br>Kusursuz ✨ · İyi ✓ · Kaçtı ✗ — art arda kusursuz = seri');
+      setBar([]);
+    },
+    // Örsteki parça = kalıptan çıkan ham parça (p=0, kalıp oyuğunun birebir aynısı); dövdükçe (p→1) asıl biçimini alır.
+    // Parça yatay yatar, altı örse oturur. fx/fy: parça çerçevesinin örsteki yeri; x0..x1: vuruş noktalarının aralığı.
+    // Balta başı alt hattı örse oturacak biçimde yatırılır (rot): arka ve ağız alt köşesi aynı anda örse basar.
+    // toW: parça çerçevesinden dünyaya; hold: sol eldeki maşanın kavradığı nokta.
+    geo:function(){
+      var s=WS(), p=P.i/N_HITS, G=partGeo(s,p), lo=null, ro=null;
+      G.prog=p; G.rot=0;
+      if(G.kind==='axe'){
+        G.pts.forEach(function(q){if(q[0]<0){if(!lo||q[1]>lo[1])lo=q;}else if(q[0]>4){if(!ro||q[1]>ro[1])ro=q;}});
+        if(lo&&ro) G.rot=-Math.atan2(ro[1]-lo[1],ro[0]-lo[0]);
+      }
+      var cs=Math.cos(G.rot), sn=Math.sin(G.rot), my=-1e9;
+      G.pts.forEach(function(q){my=Math.max(my,q[0]*sn+q[1]*cs);});
+      G.fx=s.kind==='axe'?(G.both?90:84):s.kind==='spear'?60:48; G.fy=155-my;
+      G.toW=function(px,py){return [G.fx+px*cs-py*sn,G.fy+px*sn+py*cs];};
+      if(G.kind==='axe') G.hold=G.toW(G.minX+2,2);
+      else G.hold=G.tang?[G.fx-15,G.fy+G.M[0][1]]:[G.fx+2,G.fy];
+      if(G.kind!=='axe'){G.x0=G.fx+(G.spear?13:4);G.x1=G.fx+G.L-6;}
+      return G;
+    },
+    ycAt:function(G,x){return G.kind==='axe'?G.fy+2:G.fy+yAt(G.M,x-G.fx);}, // vuruş noktasının yüksekliği
+    swing:function(){ // 0 = kalkık, 1 = vuruş anı
+      if(P.sw<0) return 0;
+      return P.sw<.06?P.sw/.06:Math.max(0,1-(P.sw-.06)/.25);
+    },
+    update:function(dt){
+      if(P.sw>=0){P.sw+=dt;if(P.sw>.31)P.sw=-1;}
+      P.shake=Math.max(0,P.shake-dt); P.flash=Math.max(0,P.flash-dt);
+      P.marks.forEach(function(m){m.a=Math.max(.25,m.a-dt*.15);});
+      if(P.target){P.hx+=(P.target.x-P.hx)*Math.min(1,dt*10);P.hy+=(P.target.y-P.hy)*Math.min(1,dt*10);}
+      if(P.done) return;
+      if(P.target){
+        P.target.t+=dt;
+        if(P.target.t>RING_DUR) this.resolve('Kaçtı ✗','#ff6a5a',0,false);
+      } else {
+        P.wait-=dt;
+        if(P.wait<=0){
+          var G=this.geo();
+          if(P.i<N_HITS){
+            var tf=(XS[P.i]-52)/80, px, py;
+            if(G.kind==='axe'){px=lerp(G.minX+5,G.maxX-4,tf);if(Math.abs(px)<5)px+=px<0?-6:6;py=2;}
+            else{px=lerp(G.x0,G.x1,tf)-G.fx;py=this.ycAt(G,G.fx+px)-G.fy;}
+            var wp=G.toW(px,py); P.target={x:wp[0],y:wp[1],px:px,py:py,t:0}; // px/py: çekiç izi parçanın üstünde kalsın
+          }
+          else{
+            var s=P.res.reduce(function(a,b){return a+b;},0)/N_HITS;
+            S.extra.perfects=P.res.filter(function(v){return v===1;}).length;
+            finish('forge',s,4,'DÖV ');
+          }
+        }
+      }
+    },
+    down:function(x,y){
+      var tg=P.target; if(!tg||P.done) return;
+      if(Math.hypot(x-tg.x,y-tg.y)>30) return;
+      var d=Math.abs(tg.t-IDEAL);
+      if(d<.08) this.resolve('Kusursuz ✨','#ffd54a',1,true);
+      else if(d<.2) this.resolve('İyi ✓','#8fe07a',.55,true);
+      else this.resolve('Kaçtı ✗','#ff6a5a',0,true);
+    },
+    resolve:function(txt,col,v,swung){
+      var tg=P.target;
+      P.res.push(v); P.i++; P.target=null; P.wait=.34;
+      if(swung){P.sw=0;}
+      if(v===1){P.combo++;P.best=Math.max(P.best,P.combo);}else P.combo=0;
+      label(txt,col,tg.x,tg.y-18);
+      if(P.combo>=2) label('Seri ×'+P.combo,'#ffe9b0',tg.x,tg.y-28);
+      if(v>0){
+        P.shake=v===1?.16:.1; P.flash=.12; P.fx=tg.x; P.fyy=tg.y;
+        P.marks.push({px:tg.px+(Math.random()*4-2),py:tg.py,a:1});
+        burst(tg.x,tg.y,v===1?22:10,['#ffd54a','#ff8a2a','#fff6d8'],v===1?80:55,140,.55);
+      } else if(swung){
+        burst(tg.x,tg.y,4,['#8a8f96'],30,100,.3);
+      }
+    },
+    draw:function(){
+      var sh=P.shake>0?P.shake*12:0;
+      g.save(); g.translate(Math.round((Math.random()-.5)*sh),Math.round((Math.random()-.5)*sh));
+      g.drawImage(room,0,0);
+      drawAnvil();
+      var G=this.geo(), c=heatColor(.82-.18*G.prog), wx0=G.fx+G.minX, wx1=G.fx+G.maxX;
+      g.globalAlpha=.16; g.fillStyle='#ff8a2a'; g.beginPath(); g.arc((wx0+wx1)/2,G.fy+4,52,0,Math.PI*2); g.fill(); g.globalAlpha=1;
+      // sol el: maşayla parçayı örse bastırıp tutar (sağ el çekici savurur)
+      var hj=G.hold, hf=Math.max(6,hj[0]-24);
+      drawArm(hf-6,hj[1],hf-42,hj[1]-50);
+      // parça (kızgın): kalıptan çıkanın aynısı, dövdükçe biçimlenir; örse değdiği yerde yüz kızarır
+      g.globalAlpha=.55; g.fillStyle=c; g.fillRect(Math.max(36,wx0),155,Math.min(144,wx1)-Math.max(36,wx0),2); g.globalAlpha=1;
+      g.save(); g.translate(G.fx,G.fy); g.rotate(G.rot);
+      drawPart(G,S.A.st,{tintCol:c,tintK:.9});
+      pathOf(G.pts); g.clip(); // çekiç izleri yalnız parçanın üstünde
+      P.marks.forEach(function(m){g.globalAlpha=.35*m.a;g.fillStyle='#5a1408';g.fillRect(m.px-2,m.py-3,4,6);});
+      g.restore(); g.globalAlpha=1;
+      drawTongsH(hf,hj[0],hj[1]);
+      drawFist(hf,hj[1],Math.PI/2);
+      if(P.flash>0){g.globalAlpha=P.flash/.12*.8;g.fillStyle='#fff6d8';g.beginPath();g.arc(P.fx,P.fyy,8,0,Math.PI*2);g.fill();g.globalAlpha=1;}
+      // hedef
+      var tg=P.target;
+      if(tg){
+        var pulse=1+Math.sin(T*14)*.5, d=Math.abs(tg.t-IDEAL);
+        g.globalAlpha=.35; g.fillStyle='#fff6d8'; g.beginPath(); g.arc(tg.x,tg.y,6+pulse,0,Math.PI*2); g.fill(); g.globalAlpha=1;
+        g.fillStyle='#fff6d8'; g.beginPath(); g.arc(tg.x,tg.y,2.5,0,Math.PI*2); g.fill();
+        g.strokeStyle='rgba(255,255,255,.55)'; g.lineWidth=1; g.beginPath(); g.arc(tg.x,tg.y,5,0,Math.PI*2); g.stroke();
+        var r=Math.max(1,5+18*(IDEAL-tg.t)/IDEAL);
+        g.strokeStyle=d<.08?'#ffffff':d<.2?'#ffd54a':'#ff8a2a'; g.lineWidth=d<.08?2:1.5;
+        g.beginPath(); g.arc(tg.x,tg.y,r,0,Math.PI*2); g.stroke();
+      }
+      // cüce çekici: eldivenli el tutar, bilekten savrulur. Kısa sap, kalın rünlü kafa.
+      var s=this.swing(), tx=P.hx, ty=P.hy, px=tx+24, py=ty-28, Lh=Math.hypot(24,21);
+      var ths=Math.atan2((ty-7)-py,tx-px), th=ths+(1-s)*(1.0+Math.sin(T*3)*.03);
+      var hx=px+Math.cos(th)*Lh, hy=py+Math.sin(th)*Lh;
+      drawArm(px,py,px+40,py-52);
+      g.save(); g.translate(hx,hy); g.rotate(th+Math.PI/2); // yerel: x = kafa ekseni, +y = sap (ele doğru)
+      // sap: ahşap, kafanın altında demir bilezikler, elin altında deri sargı, ucunda pirinç topuz
+      g.fillStyle='#1a1210'; g.fillRect(-2.5,3,5,Lh+5);
+      g.fillStyle='#7a4a26'; g.fillRect(-1.5,3,3,Lh+4);
+      g.fillStyle='#9a6434'; g.fillRect(-1.5,3,1,Lh+4);
+      g.fillStyle='#8a9099'; g.fillRect(-2.5,5,5,2); g.fillRect(-2.5,9,5,1);
+      for(var w2=Math.round(Lh)-9;w2<Lh+3;w2+=2){g.fillStyle=(w2>>1)%2?'#4a2c16':'#6b4424';g.fillRect(-2,w2,4,1);}
+      g.fillStyle='#1a1210'; g.fillRect(-3,Lh+5,6,4);
+      g.fillStyle='#b08a3a'; g.fillRect(-2,Lh+5,4,3);
+      // kafa: gövde + geniş vuruş yüzü (yere bakan uç) + arkada sivri uç
+      g.fillStyle='#1a1416'; g.fillRect(-11,-6,22,11); g.fillRect(-14,-8,4,15); poly([[10,-5],[18,-1],[10,4]]);
+      g.fillStyle='#5f646c'; g.fillRect(-10,-5,20,9);
+      g.fillStyle='#6e747c'; g.fillRect(-13,-7,3,13);
+      g.fillStyle='#8a9099'; g.fillRect(-13,-7,3,2); g.fillRect(-10,-5,20,2);
+      g.fillStyle='#454a52'; g.fillRect(-10,2,20,2); g.fillRect(-13,5,3,1);
+      g.fillStyle='#5f646c'; poly([[10,-4],[16.5,-1],[10,3]]);
+      g.fillStyle='#8a9099'; poly([[10,-4],[16.5,-1],[10,-2]]);
+      // altın rün bandı + perçinler
+      g.fillStyle='#b08a3a'; g.fillRect(-2,-6,5,11);
+      g.fillStyle='#e0c070'; g.fillRect(-2,-6,5,1);
+      g.fillStyle='#fff0b0'; g.fillRect(0,-3,1,5); g.fillRect(1,-3,1,1); g.fillRect(-1,0,1,1); // rün işareti
+      g.fillStyle='#c9ced6'; g.fillRect(-8,-4,1,1); g.fillRect(-8,2,1,1); g.fillRect(6,-4,1,1); g.fillRect(6,2,1,1);
+      g.restore();
+      drawFist(px,py,th+Math.PI/2);
+      g.restore();
+      // sayaçlar
+      g.fillStyle='#9a7b58'; g.font='7px monospace'; g.textAlign='left';
+      g.fillText('VURUŞ '+P.i+'/'+N_HITS,14,20);
+      if(P.combo>=2){g.textAlign='right';g.fillStyle='#ffd54a';g.fillText('SERİ ×'+P.combo,166,20);}
+    }
+  };
+
+  // =====================================================================
+  // 4) SOĞUT — dövülen metal yatay olarak demir tekneye daldırılır; rengine bakarak doğru anda çekilir
+  // =====================================================================
+  // Parça soğurken 6 renk kademesinden geçer. 4. kademe (kiraz kırmızısı) çekme anıdır;
+  // 5'te çatlamaya başlar, 6'da siyah parçalara ayrılır: parça da potaya atılan malzemeler de kaybolur.
+  var CRACK_TIME=.6, QX=48, WATER_Y=150; // QX: parça çerçevesinin x'i — tank() parçaya göre ortalar
+  var QSTAGES=[ // alt sıcaklık sınırı + renk
+    {min:.80,col:'#fff3c4',ad:'Beyaz'},
+    {min:.62,col:'#ffc23a',ad:'Sarı'},
+    {min:.46,col:'#ff7a1a',ad:'Turuncu'},
+    {min:.32,col:'#b8261a',ad:'Kiraz kırmızısı'}, // ← çekme anı
+    {min:.18,col:'#5e4c62',ad:'Gri-mor'},         // çatlamaya başlar
+    {min:-1, col:'#1e1a1e',ad:'Siyah'}            // kırılır
+  ];
+  var PULL_STAGE=3, CRACK_STAGE=4, BREAK_STAGE=5;
+  var PIECE_NAME={demir:'Demir cevheri',celik:'Çelik külçesi',mitril:'Mitril kristali'};
+  function qStage(t){for(var i=0;i<QSTAGES.length;i++) if(t>=QSTAGES[i].min) return i; return QSTAGES.length-1;}
+  // kademe rengi; kademenin son %25'inde bir sonraki renge yumuşak geçiş
+  function qColor(t){
+    var i=qStage(t), s=QSTAGES[i];
+    if(i>=QSTAGES.length-1) return s.col;
+    var hi=i===0?1:QSTAGES[i-1].min, f=(t-s.min)/(hi-s.min);
+    return f<.25?mix(QSTAGES[i+1].col,s.col,f/.25):s.col;
+  }
+  function swatch(i){var s=QSTAGES[i];return '<span style="display:inline-block;width:10px;height:10px;border-radius:2px;vertical-align:-1px;margin:0 2px;background:'+s.col+';border:1px solid #000"></span>';}
+  // Yatay maşa: eldiven (fx,y) noktasında kavrar, çeneler (jx,y) noktasında parçayı tutar.
+  function drawTongsH(fx,jx,y){
+    g.fillStyle='#1a1416'; g.fillRect(fx,y-3,jx-fx+3,2); g.fillRect(fx,y+1,jx-fx+3,2);
+    g.fillStyle='#5f646c'; g.fillRect(fx,y-2.5,jx-fx+2,1); g.fillRect(fx,y+1.5,jx-fx+2,1);
+    g.fillStyle='#1a1416'; g.fillRect(jx-1,y-4,4,8);
+    g.fillStyle='#8a9099'; g.fillRect(jx,y-3,1,6);
+  }
+  PH[4]={
+    enter:function(){
+      P={sub:'choose',y:70,temp:1,entered:false,splashed:false,grab:false,off:0,stir:0,cracking:0,lastStage:0};
+      this.ui();
+    },
+    ui:function(){
+      var self=this, l=LIQ[S.liq];
+      setText('SOĞUT','<b>'+l.ad+':</b> '+l.ipucu);
+      setBar([
+        {title:'Soğutma sıvısı',btns:Object.keys(LIQ).map(function(k){return {t:LIQ[k].ad,sel:S.liq===k,fn:function(){S.liq=k;self.ui();}};})},
+        {btns:[{t:'Daldırmaya geç',go:true,fn:function(){
+          P.sub='dip'; setBar([]);
+          setText('SOĞUT','Parçayı <b>aşağı sürükle</b>, tekneye daldır. Soğudukça rengi değişir:<br>'+
+            swatch(0)+'→'+swatch(1)+'→'+swatch(2)+'→ <b style="color:#ff6a5a">'+swatch(3)+'KİRAZ KIRMIZISI = ÇEK ↑</b> →'+swatch(4)+'çatlar →'+swatch(5)+'kırılır<br>'+
+            '<b>Dikkat:</b> kırılırsa parça da potaya attığın malzemeler de kaybolur!');
+        }}]}
+      ]);
+    },
+    // demir tekne parçanın boyuna göre: yatayda parçayı biraz aşar, derinliği parçanın yüksekliği + pay
+    tank:function(){
+      var G=partGeo(WS(),1), h=G.maxY-G.minY;
+      QX=Math.round(90-(G.minX+G.maxX)/2); // parça (ve tekne) alanın ortasında; kısa parçada küçük tekne yine ortada
+      return {G:G,x0:QX+G.minX-8,x1:QX+G.maxX+8,y1:WATER_Y+h+12,h:h};
+    },
+    depth:function(K){return clamp((P.y+K.G.maxY-WATER_Y)/K.h,0,1);}, // parçanın ne kadarı sıvıda
+    surf:function(x){return WATER_Y+Math.sin(x*.22+T*4)*.7+Math.sin(x*.5-T*7)*P.stir*1.5;},
+    update:function(dt){
+      P.stir=Math.max(0,P.stir-dt*.8);
+      if(P.cracking>0){P.cracking-=dt; if(P.cracking<=0) this.shatter(); return;}
+      if(P.done||P.sub!=='dip') return;
+      var l=LIQ[S.liq], K=this.tank(), G=K.G, depth=this.depth(K), sx0=QX+G.minX, sx1=QX+G.maxX, mid=(K.x0+K.x1)/2;
+      if(!P.splashed && depth>0){
+        P.splashed=true; P.stir=1;
+        for(var b=0;b<3;b++) burst(sx0+(sx1-sx0)*(b+.5)/3,WATER_Y-1,8,[l.col,mix(l.col,'#ffffff',.6),'#ffffff'],70,180,.6);
+        label('Tsssss!','#e8f4ff',mid,WATER_Y-30);
+      }
+      if(depth>0){
+        var hot=clamp((P.temp-.2)/.6,0,1);
+        P.temp=Math.max(0,P.temp-l.rate*depth*dt);
+        P.stir=Math.min(1,P.stir+dt*hot*.6);
+        // buhar: parçanın üstünden yükselir, kenarlara doğru açılır; teknenin ağzından dışarı taşar
+        if(hot>0 && Math.random()<dt*34*hot){
+          var px=sx0+Math.random()*(sx1-sx0);
+          parts.push({x:px,y:WATER_Y-2,vx:(px-mid)*.35+(Math.random()-.5)*10,vy:-12-Math.random()*12,life:1.4,max:1.4,col:'#e0d8d0',r:2,grow:8,grav:-3});
+        }
+        if(hot>.2 && Math.random()<dt*10*hot){
+          var side=Math.random()<.5?-1:1, ex=side<0?K.x0-3:K.x1+3;
+          parts.push({x:ex,y:WATER_Y-6,vx:side*(14+Math.random()*10),vy:-6-Math.random()*6,life:1.6,max:1.6,col:'#d8d0c8',r:2.5,grow:9,grav:-2});
+        }
+        if(Math.random()<dt*30*Math.max(.2,hot))
+          parts.push({x:sx0+Math.random()*(sx1-sx0),y:Math.min(P.y+G.maxY,K.y1-3),vx:(Math.random()-.5)*6,vy:-20-Math.random()*10,life:.5,max:.5,col:'#eaf6ff',sz:1,grav:0});
+      }
+      if(depth>.5) P.entered=true;
+      var st=qStage(P.temp);
+      if(st!==P.lastStage){
+        P.lastStage=st;
+        if(st===CRACK_STAGE){label('çıt!','#ff6a5a',mid+6,WATER_Y-30);burst(mid,P.y,6,['#ff6a5a','#ffffff'],30,60,.4);}
+      }
+      if(st===CRACK_STAGE && Math.random()<dt*2) label('çıt','#ff9a8a',sx0+Math.random()*(sx1-sx0),P.y-6);
+      if(st>=BREAK_STAGE){ // 6. kademe: tamamen kırılır
+        P.cracking=CRACK_TIME; P.grab=false;
+        label('Kırılıyor!','#ff6a5a',mid,WATER_Y-48);
+        return;
+      }
+      if(P.entered && depth<=0) this.end();
+    },
+    end:function(){
+      var t=P.temp, k=qStage(t), s;
+      if(k===PULL_STAGE){ // 4. kademe: ortasına ne kadar yakınsa o kadar iyi
+        var a=QSTAGES[PULL_STAGE].min, b=QSTAGES[PULL_STAGE-1].min, mid=(a+b)/2;
+        s=1-.25*Math.abs(t-mid)/((b-a)/2);
+      } else if(k<PULL_STAGE) s=[.1,.25,.5][k];
+      else s=.3-.2*clamp((QSTAGES[CRACK_STAGE-1].min-t)/(QSTAGES[CRACK_STAGE-1].min-QSTAGES[CRACK_STAGE].min),0,1);
+      S.extra.quench=k===PULL_STAGE?'tam':k<PULL_STAGE?'erken':'geç';
+      label(k===PULL_STAGE?'Tam zamanında!':k<PULL_STAGE?'Erken — yumuşak':'Geç — çatlak, kırılgan',
+            k===PULL_STAGE?'#8fe07a':'#ff9a5a',90,90);
+      finish('quench',s,5,'SOĞUT ');
+    },
+    shatter:function(){
+      var K=this.tank(), G=K.G, i;
+      P.sub='broken'; P.done=true; P.stir=1;
+      var dark=['#1e1a1e','#2e282e','#3e363e','#120e10'];
+      for(i=G.minX;i<G.maxX;i+=1.5)
+        parts.push({x:QX+i,y:P.y+(G.minY+G.maxY)/2+(Math.random()-.5)*(G.maxY-G.minY),vx:(Math.random()-.5)*110,vy:-Math.random()*90,life:1.6,max:1.6,
+                    col:dark[Math.floor(i)%4],sz:Math.random()<.5?2:3,grav:200});
+      label('KIRILDI!','#ff6a5a',90,110);
+      var lost=S.slots.map(function(k){return PIECE_NAME[k];});
+      if(S.liq==='buz') lost.push('Buz suyu');
+      $('cap').style.color='#ff6a5a';
+      setText('PARÇA KIRILDI','Dövdüğün '+WS().ad.toLocaleLowerCase('tr-TR')+' '+swatch(5)+' siyaha döndü ve parçalandı.<br>Kaybolanlar: <b>'+lost.join(', ')+'</b>'+
+        '<br>Bir dahaki sefere parça '+swatch(3)+' <b>kiraz kırmızısı</b> olunca çek.');
+      setBar([{btns:[{t:'🔁 Baştan başla',go:true,fn:function(){go(0);}}]}]);
+    },
+    down:function(x,y){
+      if(P.sub!=='dip'||P.done||P.cracking>0) return;
+      var G=this.tank().G;
+      if(x>QX+G.minX-40 && x<QX+G.maxX+6 && y>P.y+G.minY-24 && y<P.y+G.maxY+14){P.grab=true;P.off=y-P.y;}
+    },
+    move:function(x,y){
+      if(!P.grab||P.done||P.cracking>0) return;
+      var K=this.tank(); P.y=clamp(y-P.off,30,K.y1-3-K.G.maxY);
+    },
+    up:function(){P.grab=false;},
+    draw:function(){
+      var l=LIQ[S.liq], K=this.tank(), G=K.G, O='#1a1210', x, y;
+      g.drawImage(room,0,0);
+      // demir tekne: perçinli kenarlar, iki ayak
+      g.fillStyle=O; g.fillRect(K.x0+4,K.y1,5,190-K.y1); g.fillRect(K.x1-9,K.y1,5,190-K.y1);
+      g.fillStyle='#4a4f57'; g.fillRect(K.x0+5,K.y1,3,190-K.y1); g.fillRect(K.x1-8,K.y1,3,190-K.y1);
+      g.fillStyle=O; g.fillRect(K.x0-4,WATER_Y-8,K.x1-K.x0+8,K.y1-WATER_Y+11);
+      g.fillStyle='#4a4f57'; g.fillRect(K.x0-3,WATER_Y-7,K.x1-K.x0+6,K.y1-WATER_Y+9);
+      g.fillStyle='#8a9099'; g.fillRect(K.x0-3,WATER_Y-7,K.x1-K.x0+6,1);
+      g.fillStyle='#33373d'; g.fillRect(K.x0-3,K.y1,K.x1-K.x0+6,1);
+      for(x=K.x0;x<K.x1;x+=10){g.fillStyle='#2a2d33';g.fillRect(x,WATER_Y-5,1,1);g.fillRect(x,K.y1-2,1,1);}
+      for(y=WATER_Y;y<K.y1-1;y++){g.fillStyle=mix(l.col,'#05080c',(y-WATER_Y)/(K.y1-WATER_Y)*.55);g.fillRect(K.x0,y,K.x1-K.x0,1);}
+      var depth=this.depth(K), qc=qColor(P.temp), k=qStage(P.temp);
+      if(P.sub!=='broken'){
+        if(depth>0&&k<CRACK_STAGE){g.globalAlpha=.22*P.temp;g.fillStyle=qc;g.beginPath();g.arc((K.x0+K.x1)/2,Math.min(P.y,K.y1-8),26,0,Math.PI*2);g.fill();g.globalAlpha=1;}
+        // aynı eldivenli el parçayı yandan maşayla tutar (kılıçta sap ucundan, baltada çekiç yüzünden, mızrakta yuvadan)
+        var shake=P.cracking>0?(Math.random()-.5)*3:0, bx=QX+shake;
+        var jy=P.y+(G.kind==='blade'?G.M[0][1]:G.kind==='axe'?2:0), jx=bx+G.minX+3, fx=jx-28;
+        drawArm(fx-6,jy,fx-40,jy-56);
+        g.save(); g.translate(bx,P.y); drawPart(G,S.A.st,{tintCol:qc,tintK:.85,glowCol:k<PULL_STAGE?qc:null}); g.restore();
+        drawTongsH(fx,jx,jy);
+        drawFist(fx,jy,Math.PI/2);
+        var top=Math.max(WATER_Y,P.y+G.minY), bot=Math.min(K.y1-1,P.y+G.maxY);
+        if(bot>top){g.globalAlpha=.15;g.fillStyle=l.col;g.fillRect(bx+G.minX,top,G.maxX-G.minX,bot-top);g.globalAlpha=1;}
+        // 5. kademede çatlaklar soğudukça çoğalır; kırılırken hepsi kızarır
+        if(k>=CRACK_STAGE||P.cracking>0){
+          var a5=QSTAGES[CRACK_STAGE-1].min, b5=QSTAGES[CRACK_STAGE].min;
+          var n=P.cracking>0?5:1+Math.floor(clamp((a5-P.temp)/(a5-b5),0,1)*4);
+          for(var c=0;c<n;c++){
+            var cx=bx+G.maxX*(c+.7)/5.5, c0=P.y+G.minY+2, c1=P.y+G.maxY-2;
+            if(G.kind!=='axe'){c0=P.y+yAt(G.T,cx-bx)+1;c1=P.y+yAt(G.B,cx-bx)-1;}
+            g.strokeStyle=P.cracking>0?'#ff6a5a':'#0e0a0c'; g.lineWidth=1; g.beginPath(); g.moveTo(cx-1,c0);
+            g.lineTo(cx+2,c0+(c1-c0)*.35); g.lineTo(cx-1,c0+(c1-c0)*.65); g.lineTo(cx+1.5,c1); g.stroke();
+          }
+        }
+      }
+      g.fillStyle=mix(l.col,'#ffffff',.45);
+      for(x=K.x0;x<K.x1;x++) g.fillRect(x,Math.round(this.surf(x)),1,1);
+      if(P.sub==='dip'&&!P.entered){g.textAlign='center';g.fillStyle='#ffcf8a';g.font='bold 8px monospace';g.fillText('↓ sürükle',(K.x0+K.x1)/2+Math.sin(T*4)*2,Math.min(P.y+G.minY-6,WATER_Y-12));}
+    }
+  };
+
+  // =====================================================================
+  // 5) BİLE — dalgalı bileme çizgisini takip et, hızı yeşil bantta tut
+  // =====================================================================
+  // hız bandı göstergenin tam ortasında; hız son SPD_WIN saniyedeki gerçek yoldan ölçülür
+  // taşlama çarkı kılıcın altındadır ve parmağı izleyerek ağız boyunca kayar
+  var SW_X=32, SW_Y=112, MAX_PASS=5, SPD_LO=45, SPD_HI=115, SPD_MAX=160, SPD_WIN=.12;
+  // Türe göre bileme yolu: silah yatay (uç sağda) çizilir; yol, aşağı bakan ağzın üstünden geçer.
+  // x0..x1: bilenecek aralık, base(x): o noktadaki ağzın yüksekliği.
+  // Bileme yerleşimi: parça (dövülmüş hâl) ağzı aşağı bakacak biçimde konur, yol ağzın kendi hattını izler
+  // (kavisli kılıçta kavisli). place: parça çerçevesinin dünyadaki yeri/dönüşü, base(x): o noktadaki ağız yüksekliği,
+  // hold: çıplak metali tutan el — kılıçta sap ucunu doğrudan kavrar, balta/mızrakta maşayla tutar.
+  function grindCfg(){
+    var s=WS(), G=partGeo(s,1), c={G:G};
+    if(G.kind==='axe'){ // +90° döndürülür: (px,py) → (cx-py, cy+px); ağız aşağıda yatay olur
+      var cx=100, cy=100, E=G.edge;
+      c.place={x:cx,y:cy,rot:Math.PI/2};
+      c.x0=cx-E[E.length-1][1]+3; c.x1=cx-E[0][1]-3;
+      c.base=function(x){return cy+edgeXAt(E,cx-x)-1.5;};
+      c.hold={htong:[cx-G.minY+30,cx-G.minY+2,cy+1],arm:[cx-G.minY+70,cy-50]}; // sağdan, başın üst ucundan tutar
+    } else {
+      var gx=G.spear?58:34, gy=110;
+      c.place={x:gx,y:gy,rot:0};
+      c.x0=gx+(G.spear?13:4); c.x1=gx+G.L*.9;
+      c.base=function(x){return gy+yAt(G.B,x-gx)-1;};
+      c.hold=G.tang?{fist:[gx-12,gy+G.M[0][1],Math.PI/2],arm:[gx-60,gy-50]}:{tong:[gx+5,gy-34,gy-4],arm:[gx-40,gy-86]};
+    }
+    c.x0=Math.round(c.x0); c.x1=Math.round(c.x1);
+    return c;
+  }
+  var WHEEL_R=26;
+  PH[5]={
+    enter:function(){
+      var A=S.A, fq=S.scores.forge===undefined?.7:S.scores.forge;
+      // kılıç düz durur; bileme çizgisi ağzın üstünde dalgalanır (kötü dövülmüş ağız daha dalgalı)
+      var cfg=grindCfg(), range=cfg.x1-cfg.x0;
+      P={passes:[],cur:null,sharp:0,dur:A.dur,rot:0,spd:0,cfg:cfg,gx0:cfg.x0,gx1:cfg.x1,wx:cfg.x0+8,
+         gm:new Array(range+1).fill(0), // ağız boyunca her sütunun bilenme parlaklığı (0..1)
+         amp:Math.min(2.6,.6+1.5*(1-fq)+A.D)*clamp(Math.sqrt(range/108),.45,1), ph:Math.random()*6, tol:3.5-1.2*A.D};
+      setText('BİLE','Soldaki noktadan başla, ağız boyunca <b>dalgalı bileme çizgisini</b> takip ederek sağa kaydır.<br>Hızı <b>yeşil bantta</b> tut. Durursan çelik ısınır — <b>tav kaçar!</b>');
+      this.ui();
+    },
+    ui:function(){
+      var n=P.passes.length;
+      setBar([{btns:[{t:n?'✓ Bitir ('+n+' geçiş)':'En az 1 geçiş',go:n>0,dis:n===0,fn:function(){PH[5].done();}}]}]);
+    },
+    done:function(){
+      if(P.done) return;
+      var avg=P.passes.reduce(function(a,b){return a+b;},0)/P.passes.length;
+      S.extra.sharp=P.sharp; S.extra.dur=P.dur; S.extra.passes=P.passes.length;
+      setBar([]);
+      finish('grind',avg,6,'BİLE ');
+    },
+    edge:function(x){return P.cfg.base(x)+P.amp*Math.sin((x-P.gx0)*.085+P.ph);},
+    update:function(dt){
+      var c=P.cur;
+      P.rot+=dt*(c?14:6);
+      // çark: bilerken parmağı izler, boştayken başlangıç noktasına döner
+      var tx=c?c.s[c.s.length-1].x:P.gx0+8;
+      P.wx+=(clamp(tx,P.gx0,P.gx1)-P.wx)*Math.min(1,dt*(c?25:4));
+      // hareket gelmiyorsa (parmak durdu ya da kalktı) gösterge yumuşakça sıfıra iner
+      if(!c || performance.now()-c.s[c.s.length-1].t>100) P.spd*=Math.exp(-6*dt);
+      if(c && !c.burn && performance.now()-c.s[c.s.length-1].t>350) this.burn(c.s[c.s.length-1]);
+    },
+    burn:function(p){
+      P.cur.burn=true;
+      label('Tav kaçtı!','#7fb0ff',p.x,p.y-12);
+      burst(p.x,p.y,10,['#5a8cff','#9fc8ff'],30,20,.6);
+    },
+    down:function(x,y){
+      if(P.done||P.passes.length>=MAX_PASS) return;
+      if(x<P.gx0+Math.min(24,(P.gx1-P.gx0)*.35) && Math.abs(y-this.edge(x))<16) P.cur={s:[{x:x,y:y,t:performance.now()}],burn:false,slow:0};
+    },
+    move:function(x,y){
+      var c=P.cur; if(!c) return;
+      var now=performance.now(), lp=c.s[c.s.length-1], dt=(now-lp.t)/1000;
+      // hız = son SPD_WIN saniyede alınan yatay yol / geçen süre (tek olay arası zıplamaları yok eder)
+      var j=c.s.length-1; while(j>0 && now-c.s[j-1].t<=SPD_WIN*1000) j--;
+      var s0=c.s[j], span=(now-s0.t)/1000;
+      if(span>=.03){var v=Math.max(0,(x-s0.x)/span); P.spd+=(v-P.spd)*.35;}
+      c.s.push({x:x,y:y,t:now,v:P.spd});
+      if(!c.burn && P.spd<12 && c.s.length>4){c.slow+=dt; if(c.slow>.35) this.burn({x:x,y:y});} else c.slow=0;
+      var inB=P.spd>=SPD_LO&&P.spd<=SPD_HI, dev=Math.abs(y-this.edge(x)), near=dev<P.tol;
+      // geçilen sütunlar iyi geçişte daha çok parlar
+      var q=(near?1-dev/P.tol:0)*(inB?1:.5);
+      var c0=Math.round(Math.min(lp.x,x))-P.gx0, c1=Math.round(Math.max(lp.x,x))-P.gx0;
+      for(var cc=Math.max(0,c0);cc<=Math.min(P.gx1-P.gx0,c1);cc++) P.gm[cc]=Math.min(1,P.gm[cc]+q*.45);
+      // kıvılcımlar çarkın kılıca değdiği noktadan, çarkın dönüş yönünde (sağa) fışkırır
+      var good=inB&&near, ey=this.edge(P.wx);
+      for(var k2=0;k2<(good?3:1);k2++)
+        parts.push({x:P.wx+2,y:ey+1,vx:50+Math.random()*(good?110:50),vy:-45+Math.random()*50,life:.3+Math.random()*.3,max:.6,
+                    col:good?['#ffd54a','#fff6d8','#ff8a2a'][k2]:'#ff6a3a',sz:1,grav:130});
+      if(x>=P.gx1-4) this.endPass();
+    },
+    up:function(){
+      if(P.cur){P.cur=null;label('Yarım kaldı','#ff9a5a',90,94);}
+    },
+    endPass:function(){
+      var c=P.cur, s=c.s, self=this; P.cur=null;
+      var dev=0; s.forEach(function(p){dev+=Math.abs(p.y-self.edge(p.x));}); dev/=s.length;
+      var acc=clamp(1-dev/P.tol,0,1);
+      var vs=s.filter(function(p){return p.v!==undefined;});
+      var inB=vs.filter(function(p){return p.v>=SPD_LO&&p.v<=SPD_HI;}).length/Math.max(1,vs.length);
+      var dur=(s[s.length-1].t-s[0].t)/1000;
+      var ps=acc*.6+inB*.4;
+      if(dur<.4*(P.gx1-P.gx0)/108) ps*=.6; // çok hızlı süpürme (kısa ağızda süre de kısalır)
+      if(c.burn) ps*=.6;
+      ps=clamp(ps,0,1);
+      P.passes.push(ps);
+      P.sharp=Math.min(100,P.sharp+6+16*ps);
+      P.dur=Math.max(20,P.dur-(4+4*(1-ps))-(c.burn?8:0)); // iyi geçiş az aşındırır
+      label('Geçiş '+P.passes.length+': '+Math.round(ps*100),ps>.75?'#ffd54a':'#ffcf8a',90,94);
+      if(P.passes.length>=MAX_PASS) this.done(); else this.ui();
+    },
+    draw:function(){
+      var x, k, a;
+      g.drawImage(room,0,0);
+      // çark sehpası: kılıcın altında, parmakla birlikte kayar (ayaklar + pedal)
+      var wx=Math.round(P.wx), wy=Math.round(P.cfg.base(P.wx))+1+WHEEL_R, pedal=Math.sin(P.rot*.5)*3;
+      g.fillStyle='#1a1210'; g.fillRect(wx-19,wy-2,5,192-wy+2); g.fillRect(wx+14,wy-2,5,192-wy+2); g.fillRect(wx-19,180,38,4);
+      g.fillStyle='#6b4424'; g.fillRect(wx-18,wy-1,3,192-wy); g.fillRect(wx+15,wy-1,3,192-wy); g.fillRect(wx-18,181,36,2);
+      g.fillStyle='#5f646c'; g.fillRect(wx-1,wy,2,182-wy+pedal); g.fillRect(wx-6,182+pedal,12,2); // pedal kolu
+      // taş çark: dış halka + dönen taş dokusu + göbek
+      g.fillStyle='#1a1210'; g.beginPath(); g.arc(wx,wy,WHEEL_R+1,0,Math.PI*2); g.fill();
+      g.fillStyle='#8a8070'; g.beginPath(); g.arc(wx,wy,WHEEL_R,0,Math.PI*2); g.fill();
+      g.fillStyle='#a49a88'; g.beginPath(); g.arc(wx,wy,WHEEL_R,Math.PI*1.05,Math.PI*1.6); g.lineTo(wx,wy); g.fill();
+      g.fillStyle='#6e6558';
+      for(k=0;k<14;k++){a=P.rot+k*Math.PI/7;g.fillRect(Math.round(wx+Math.cos(a)*(WHEEL_R-4)),Math.round(wy+Math.sin(a)*(WHEEL_R-4)),2,2);}
+      g.fillStyle='#5a5246'; g.beginPath(); g.arc(wx,wy,WHEEL_R-8,0,Math.PI*2); g.fill();
+      g.strokeStyle='#8a8070'; g.lineWidth=1;
+      for(k=0;k<4;k++){a=P.rot+k*Math.PI/2;g.beginPath();g.moveTo(wx,wy);g.lineTo(wx+Math.cos(a)*(WHEEL_R-8),wy+Math.sin(a)*(WHEEL_R-8));g.stroke();}
+      g.fillStyle='#3d3a38'; g.beginPath(); g.arc(wx,wy,4,0,Math.PI*2); g.fill();
+      g.fillStyle='#8a9099'; g.fillRect(wx-1,wy-1,2,2);
+      // kılıç düz, malzemesine göre görünür (uç sağda)
+      // sap takılmadan önce bilenir: çıplak metal, demircinin eli/maşası tutar
+      var hd=P.cfg.hold, pl=P.cfg.place;
+      if(hd.fist) drawArm(hd.fist[0]-6,hd.fist[1]-2,hd.arm[0],hd.arm[1]);
+      else if(hd.tong) drawArm(hd.tong[0]+3,hd.tong[1]-2,hd.arm[0],hd.arm[1]);
+      else drawArm(hd.htong[0]+6,hd.htong[2],hd.arm[0],hd.arm[1]);
+      g.save(); g.translate(pl.x,pl.y); g.rotate(pl.rot); drawPart(P.cfg.G,S.A.st,{sharp:P.sharp/100}); g.restore();
+      if(hd.fist) drawFist(hd.fist[0],hd.fist[1],hd.fist[2]);
+      else if(hd.tong){drawTongs(hd.tong[0],hd.tong[1],hd.tong[2]);drawFist(hd.tong[0],hd.tong[1],0);}
+      else{ // sağdan yatay maşa (eldiven sağda)
+        g.save(); g.translate(hd.htong[0]+hd.htong[1],0); g.scale(-1,1); drawTongsH(hd.htong[1],hd.htong[0],hd.htong[2]); g.restore();
+        drawFist(hd.htong[0],hd.htong[2],Math.PI/2);
+      }
+      // bilenme izi: ağız boyunca her sütun kendi parlaklığında (bilenen yer parlar, bilenmeyen mat kalır)
+      for(x=P.gx0;x<=P.gx1;x++){
+        var gv=P.gm[x-P.gx0], ey=Math.round(this.edge(x));
+        g.fillStyle=mix('#5a6068','#ffffff',gv); g.fillRect(x,ey,1,1);
+        if(gv>.5){g.fillStyle='rgba(255,255,255,'+((gv-.5)*.8)+')';g.fillRect(x,ey-1,1,1);}
+      }
+      // çarkın değdiği nokta kızarır
+      if(P.cur){var cy=this.edge(P.wx);g.globalAlpha=.6+.3*Math.random();g.fillStyle='#ffc23a';g.beginPath();g.arc(P.wx,cy+1,2.5,0,Math.PI*2);g.fill();g.globalAlpha=1;}
+      if(!P.cur && !P.done){
+        g.fillStyle='#ffd54a';
+        for(x=P.gx0+2;x<P.gx1;x+=4){g.globalAlpha=.3+.4*Math.sin(T*6-x*.15);g.fillRect(x,Math.round(this.edge(x))+2,2,1);}
+        g.globalAlpha=.5+.5*Math.sin(T*5); g.beginPath(); g.arc(P.gx0+8,this.edge(P.gx0+8),3.5,0,Math.PI*2); g.fill(); g.globalAlpha=1;
+      }
+      if(P.cur){
+        g.strokeStyle=P.cur.burn?'#5a8cff':'#ff8a2a'; g.lineWidth=1; g.beginPath();
+        P.cur.s.forEach(function(p,j){if(j)g.lineTo(p.x,p.y);else g.moveTo(p.x,p.y);}); g.stroke();
+      }
+      var mx0=64, mw=100, inB=P.spd>=SPD_LO&&P.spd<=SPD_HI;
+      g.fillStyle='#120a06'; g.fillRect(mx0,26,mw,5);
+      g.fillStyle='#2f6b3a'; g.fillRect(mx0+mw*SPD_LO/SPD_MAX,26,mw*(SPD_HI-SPD_LO)/SPD_MAX,5);
+      g.fillStyle=inB?'#8fe07a':P.spd>SPD_HI?'#ff6a5a':'#ffcf8a';
+      g.fillRect(mx0+mw*clamp(P.spd/SPD_MAX,0,1)-1,24,2,9);
+      g.font='7px monospace'; g.textAlign='left'; g.fillStyle='#9a7b58';
+      g.fillText('HIZ',14,31); g.fillText('GEÇİŞ '+P.passes.length+'/'+MAX_PASS,14,18);
+      g.fillText('KESKİNLİK',14,206); g.fillText('SAĞLAMLIK',14,220);
+      g.fillStyle='#120a06'; g.fillRect(64,200,100,6); g.fillRect(64,214,100,6);
+      g.fillStyle='#8fd0ff'; g.fillRect(64,200,P.sharp,6);
+      g.fillStyle='#ffb35a'; g.fillRect(64,214,P.dur,6);
+    }
+  };
+  // =====================================================================
+  // 6) BİRLEŞTİR — duvardaki raftan kabza/sap seç (sürükle-bırak ya da dokun), metal parçanın ucuna tak, perçinle
+  // =====================================================================
+  var AS_X=40, AS_Y=139, RIVETS=3, AS_HAFT={axe:56,spear:70}, RACK_Y=34; // silah tezgâhta yatar; balta sapı mızraktan kısa
+  PH[6]={
+    enter:function(){
+      var list=gripList(), rank=BULUNUR.indexOf(S.A.bulunur), sug=0, i;
+      for(i=0;i<list.length;i++) if(!(list[i].need>rank)&&list[i].uyum===S.A.dom){sug=i;break;} // metale uyumlu olan önerilir
+      P={sel:-1,sug:sug,rank:rank,slide:0,rivets:0,hit:0,drag:null};
+      this.ui();
+    },
+    slot:function(i){return {x:27+i*42,y:RACK_Y};},
+    attachPt:function(){var k=WS().kind;return {x:k==='axe'?AS_X+AS_HAFT.axe:k==='spear'?AS_X+AS_HAFT.spear+3:AS_X-6,y:AS_Y};},
+    rivet:function(){var k=WS().kind, ly=k==='axe'?-AS_HAFT.axe:k==='spear'?-AS_HAFT.spear-5:3;return {x:AS_X-ly,y:AS_Y};},
+    locked:function(i){return gripList()[i].need>P.rank;},
+    ui:function(){
+      var list=gripList(), parca=WEAPONS[S.wt].parca==='kabza'?'kabza':'sap';
+      var i=P.drag?P.drag.i:P.sel>=0?P.sel:P.sug, gp=list[i], uy=gp.uyum===S.A.dom;
+      var info='<b>'+gp.ad+'</b>'+(this.locked(i)?' · 🔒 daha kıymetli metal ister':'')+(uy?' · <span class="found">✓ '+gp.uyumAd+' — '+S.A.ad+' ile uyumlu</span>':'')+
+        '<br>Sağlamlık <b>+'+(gp.dur+(uy?5:0))+'</b> · Değer <b>×'+(gp.degerK*(uy?1.1:1)).toFixed(2)+'</b> · Ağırlık <b>×'+gp.grK.toFixed(2)+'</b>'+(gp.trait?' · '+gp.trait:'');
+      var how=P.sel<0?'Raftan bir '+parca+' <b>sürükleyip</b> metal parçanın ucuna bırak (ya da rafta dokun).':
+              P.rivets<RIVETS?'Takıldı — parlayan <b>perçine '+RIVETS+' kez</b> vur.':'';
+      setText('BİRLEŞTİR',info+'<br>'+how);
+      setBar(P.sel>=0&&P.rivets===0?[{btns:[{t:'↩ Çıkar',fn:function(){P.sel=-1;PH[6].ui();}}]}]:[]);
+    },
+    hitSlot:function(x,y){
+      for(var i=0;i<gripList().length;i++){var s=this.slot(i);if(Math.abs(x-s.x)<19&&y>s.y-16&&y<s.y+36)return i;}
+      return -1;
+    },
+    attach:function(i){
+      var a=this.attachPt();
+      P.sel=i; P.slide=0;
+      burst(a.x,a.y,8,['#c9b8a0','#ffffff'],30,60,.4); label('klik!','#ffe9b0',a.x,a.y-16);
+      this.ui();
+    },
+    update:function(dt){P.slide=Math.min(1,P.slide+dt*3);P.hit=Math.max(0,P.hit-dt);},
+    down:function(x,y){
+      if(P.done) return;
+      if(P.sel>=0&&P.slide>=1){
+        var r=this.rivet();
+        if(Math.hypot(x-r.x,y-r.y)<=18){
+          P.rivets++; P.hit=.15;
+          burst(r.x,r.y,10,['#ffd54a','#fff6d8','#c9ced6'],50,120,.4);
+          label(P.rivets<RIVETS?'tak!':'Takıldı!',P.rivets<RIVETS?'#ffe9b0':'#8fe07a',r.x,r.y-18);
+          if(P.rivets===1) this.ui(); // ilk vuruştan sonra seçim kilitlenir
+          if(P.rivets>=RIVETS){S.grip=gripList()[P.sel];P.done=true;P.endIn=1;P.next=7;setBar([]);}
+          return;
+        }
+      }
+      if(P.rivets>0) return;
+      var i=this.hitSlot(x,y);
+      if(i<0) return;
+      if(this.locked(i)){label('🔒 kıymetli metal ister','#ff9a5a',x,y-12);return;}
+      P.drag={i:i,x:x,y:y,x0:x,y0:y}; this.ui();
+    },
+    move:function(x,y){if(P.drag){P.drag.x=x;P.drag.y=y;}},
+    up:function(){
+      var d=P.drag; if(!d) return; P.drag=null;
+      var a=this.attachPt();
+      if(Math.hypot(d.x-d.x0,d.y-d.y0)<6||Math.hypot(d.x-a.x,d.y-a.y)<38) this.attach(d.i); // dokunma ya da doğru yere bırakma
+      else{label('ucuna bırak','#ffcf8a',d.x,d.y-12);this.ui();}
+    },
+    // raftaki parça (küçük): kılıçta o biçimin kabzası, balta/mızrakta sap parçası — seçeneğin renkleriyle
+    rackItem:function(i,x,y){
+      var st2=gripStyle(S.A.st,gripList()[i]), s=WS();
+      g.save(); g.translate(x,y); g.scale(.62,.62);
+      if(s.kind==='blade') drawHilt(s.hilt,st2,st2.patCol); else drawHaft(st2,-6,0,s.kind==='axe');
+      g.restore();
+    },
+    draw:function(){
+      var O='#1a1210', list=gripList(), i;
+      g.drawImage(room,0,0);
+      // duvar rafı: tahta pano + mandallar
+      g.fillStyle=O; g.fillRect(6,RACK_Y-20,168,58);
+      g.fillStyle='#5a3a22'; g.fillRect(7,RACK_Y-19,166,56);
+      g.fillStyle='#6b4628'; for(i=0;i<5;i++) g.fillRect(7,RACK_Y-19+i*11,166,1);
+      g.fillStyle='#4a4f57'; g.fillRect(9,RACK_Y-17,3,3); g.fillRect(168,RACK_Y-17,3,3); g.fillRect(9,RACK_Y+32,3,3); g.fillRect(168,RACK_Y+32,3,3);
+      for(i=0;i<list.length;i++){
+        var s=this.slot(i), lk=this.locked(i), used=P.sel===i, dragged=P.drag&&P.drag.i===i;
+        g.fillStyle=O; g.fillRect(s.x-1.5,s.y-14,3,5); g.fillStyle='#8a9099'; g.fillRect(s.x-.5,s.y-13,1,3); // mandal
+        if(!used&&!dragged){
+          this.rackItem(i,s.x,s.y-8);
+          if(lk){g.globalAlpha=.6;g.fillStyle='#120a06';g.fillRect(s.x-17,s.y-15,34,50);g.globalAlpha=1;
+            g.fillStyle='#c9ced6';g.fillRect(s.x-3,s.y+6,6,5);g.strokeStyle='#c9ced6';g.lineWidth=1.2;g.beginPath();g.arc(s.x,s.y+6,2.2,Math.PI,0);g.stroke();}
+        }
+        if(i===P.sug&&!lk&&P.sel<0){g.fillStyle='#8fe07a';g.font='bold 8px monospace';g.textAlign='center';g.fillText('✓',s.x+12,s.y-8+Math.sin(T*5));}
+      }
+      // tezgâh: baltada kısa — balta başı tezgâhın kenarından sarkar (ağız tezgâha girmesin)
+      var k=WS().kind, be=k==='axe'?AS_X+AS_HAFT.axe-17:176;
+      g.fillStyle=O; g.fillRect(4,146,be-4,12);
+      g.fillStyle='#6b4424'; g.fillRect(5,147,be-6,10);
+      g.fillStyle='#8a5a32'; g.fillRect(5,147,be-6,1);
+      g.fillStyle='#4a2e1a'; g.fillRect(14,157,6,33); g.fillRect(be-16,157,6,33);
+      // silah: seçilmeden çıplak metal, takılınca kabza/sap kayarak oturur
+      var ease=1-Math.pow(1-P.slide,3), op={len:AS_HAFT[k],sharp:(S.extra.sharp||0)/100,flip:k==='axe'};
+      if(P.sel>=0){op.gripOff=(1-ease)*26;drawWeaponAt(AS_X,AS_Y,Math.PI/2,gripStyle(S.A.st,list[P.sel]),op);}
+      else{op.bare=true;drawWeaponAt(AS_X,AS_Y,Math.PI/2,S.A.st,op);}
+      var a=this.attachPt();
+      if(P.sel<0){ // takılacak yer
+        g.globalAlpha=.3+.25*Math.sin(T*6); g.strokeStyle='#ffd54a'; g.lineWidth=1.5;
+        g.beginPath(); g.arc(a.x,a.y,9,0,Math.PI*2); g.stroke(); g.globalAlpha=1;
+      }
+      if(P.drag){ // sürüklenen parça + hedefe yaklaşınca parlama
+        var near=Math.hypot(P.drag.x-a.x,P.drag.y-a.y)<38;
+        if(near){g.globalAlpha=.35;g.fillStyle='#8fe07a';g.beginPath();g.arc(a.x,a.y,11,0,Math.PI*2);g.fill();g.globalAlpha=1;}
+        this.rackItem(P.drag.i,P.drag.x,P.drag.y-10);
+      }
+      // perçin + onu çakan küçük çekiç
+      if(P.sel>=0){
+        var r=this.rivet();
+        if(P.slide>=1&&!P.done){g.globalAlpha=.25+.2*Math.sin(T*6);g.fillStyle='#ffd54a';g.beginPath();g.arc(r.x,r.y,7,0,Math.PI*2);g.fill();g.globalAlpha=1;}
+        g.fillStyle=O; g.beginPath(); g.arc(r.x,r.y,2.5+P.rivets*.4,0,Math.PI*2); g.fill();
+        g.fillStyle=P.rivets?'#c9ced6':'#ffd54a'; g.beginPath(); g.arc(r.x,r.y,1.5+P.rivets*.4,0,Math.PI*2); g.fill();
+        if(!P.done||P.hit>0){
+          var lift=P.hit>0?2:10+Math.sin(T*4)*2, hx=r.x, hy=r.y-6-lift;
+          g.fillStyle=O; g.fillRect(hx-5,hy-5,10,6); g.fillRect(hx+3,hy-15,3,12);
+          g.fillStyle='#8a9099'; g.fillRect(hx-4,hy-4,8,4); g.fillStyle='#7a4a26'; g.fillRect(hx+4,hy-14,1,11);
+        }
+      }
+      g.font='7px monospace'; g.textAlign='left'; g.fillStyle='#9a7b58'; g.fillText('PERÇİN '+P.rivets+'/'+RIVETS,14,104);
+    }
+  };
+
+  // =====================================================================
+  // 7) SONUÇ — beceri tabanı (metalin aralığına yayılır), şans tavanı + dramatik açılış
+  // =====================================================================
+  function compute(){
+    var sc=S.scores, A=S.A, l=S.liq;
+    var perf=WEIGHTS.heat*sc.heat+WEIGHTS.forge*sc.forge+WEIGHTS.quench*sc.quench+WEIGHTS.grind*sc.grind;
+    // Performans eğrisi: üst kademeler gerçekten iyi oyun ister.
+    var curve=Math.pow(clamp(perf,0,1),1.6);
+    var raw=A.minT+Math.floor(curve*(A.maxT-A.minT)+1e-9);
+    var base=clamp(raw,A.minT,A.maxT-1);
+    var p1=.06+.12*perf, p2=.015*Math.pow(perf,4);
+    var r=Math.random(), up=r<p2?2:r<p1?1:0;
+    var tier=Math.min(base+up,A.maxT);
+    if(tier===6 && up!==2) tier=5;
+    up=tier-base;
+    var sharp=S.extra.sharp+(l==='su'?10:0)+(l==='buz'?6:0)+(WS().keskinB||0); // katana/hançer gibi biçimler daha keskin
+    var dur=S.extra.dur*(.75+.25*sc.quench)+(l==='yag'?8:0)-(l==='su'?5:0)-(S.extra.quench==='geç'?10:0)-(S.extra.quench==='erken'?4:0);
+    var gp=S.grip, uy=!!(gp&&gp.uyum===A.dom); // BİRLEŞTİR'de takılan kabza/sap
+    if(gp) dur+=gp.dur+(uy?5:0);
+    var traits=A.traits.slice();
+    if(gp&&gp.trait) traits.push(gp.trait);
+    if(uy) traits.push('✓ '+gp.uyumAd);
+    if(l==='buz') traits.push(A.n.mitril?'❄️ Buz ×2 (iletken)':'❄️ Buz');
+    if(S.extra.quench==='erken') traits.push('Yumuşak');
+    if(S.extra.quench==='geç') traits.push('Kırılgan');
+    if(sc.heat>.9) traits.push('Dengeli');
+    if(S.extra.perfects>=8) traits.push('✨ Usta Vuruşu');
+    return {perf:perf,base:base,tier:tier,up:up,capped:raw>=A.maxT-1,floored:A.minT>0&&raw===A.minT,
+      gr:Math.round(A.gr*WS().grK*(gp?gp.grK:1)*(S.extra.passes?1-.02*S.extra.passes:1)),
+      deger:Math.round(A.deger*WS().degerK*(gp?gp.degerK*(uy?1.1:1):1)*Math.pow(1.9,tier)),
+      hasar:Math.round(A.hasar*WS().hasarK*(gp&&gp.trait?1.05:1)*(.6+.6*sc.forge)*(1+tier*.08)),
+      keskin:Math.round(clamp(sharp,0,100)), saglam:Math.round(clamp(dur,0,100)), traits:traits,
+      risk:clamp(Math.round((100-clamp(dur,0,100))/4),1,25)}; // 100 savaş vuruşunda kırılma ihtimali (%)
+  }
+  PH[7]={
+    enter:function(){
+      var R=compute();
+      P={R:R,k:Math.min(S.A.minT,R.tier),tt:0,revealed:false,rays:0};
+      setText('…','Işık kademeleri dolaşıyor…'); setBar([]);
+    },
+    update:function(dt){
+      P.rays+=dt*(P.revealed?.6:2.5);
+      if(P.revealed) return;
+      P.tt+=dt;
+      var step=.16+.07*P.k;
+      if(P.tt>=step){
+        P.tt=0;
+        if(P.k<P.R.tier) P.k++;
+        else this.reveal();
+      }
+    },
+    reveal:function(){
+      P.revealed=true;
+      var R=P.R, A=S.A, t=TIERS[R.tier], sc=S.scores;
+      var big=R.tier>=5, newAlloy=discover(A);
+      burst(90,110,big?80:30,big?['#ffc83a','#fff6d8','#ff4fa0','#4aa3ff']:[t[1],'#fff6d8'],big?110:70,40,big?1.4:.9);
+      var N=weaponName(R);
+      // biten silah envantere girer (eritilirse içindeki 3 cevherden 2'si geri döner)
+      var entry={ad:N.ad||('«'+N.oneri+'»'),tier:R.tier,tur:WS().ad,metal:A.ad,slots:S.slots.slice(),deger:R.deger};
+      INV.weapons.push(entry); INV.msg='🎒 <b>'+entry.ad+'</b> envantere eklendi.'; saveInv(); renderInv();
+      var nameHtml=N.ad
+        ? '<div class="wname" style="color:'+t[1]+'">'+N.ad+'</div>'+(N.alt?'<div class="walt">'+N.alt+'</div>':'')
+        : '<div class="walt">Mitik bir silah doğdu — <b>adını sen koy</b>:</div>'+
+          '<div class="nameform"><input id="wname" maxlength="24" value="'+N.oneri+'"><button class="btn go" id="wnameok">Adını koy</button></div>'+
+          '<div class="walt">'+N.alt+'</div>';
+      var ladder='<div class="ladder">'+TIERS.map(function(tt,i){
+        return '<span class="lt'+(i===R.tier?' cur':'')+(i<A.minT||i>A.maxT?' off':'')+'" style="--c:'+tt[1]+'">'+tt[0]+'</span>';
+      }).join('')+'</div><div class="lnote">'+A.ad+' aralığı: '+TIERS[A.minT][0]+' – '+TIERS[A.maxT][0]+'</div>';
+      $('cap').style.color=t[1];
+      setText('★ '+t[0].toLocaleUpperCase('tr-TR')+' ★',
+        nameHtml+
+        (newAlloy?'<div class="found">⚗️ Yeni alaşım keşfedildi: '+A.ad+'!</div>':'')+
+        (R.up?'Şans seni <b>'+R.up+' kademe</b> yukarı itti! (taban: '+TIERS[R.base][0]+')':'Taban kademe: <b>'+TIERS[R.base][0]+'</b>')+
+        (R.capped&&!R.up?'<br>'+A.ad+' için en iyi taban bu — üstü şansa ya da daha kıymetli metale bağlı.':'')+
+        (R.floored?'<br><b>'+A.ad+'</b> kıymetlidir: '+TIERS[A.minT][0]+' altına düşmez.':'')+
+        ladder+
+        '<table class="res">'+
+        '<tr><td>Tür</td><td>'+WS().ad+'</td></tr>'+
+        (S.grip?'<tr><td>'+(WEAPONS[S.wt].parca==='kabza'?'Kabza':'Sap')+'</td><td>'+S.grip.ad+'</td></tr>':'')+
+        '<tr><td>Metal</td><td>'+A.ad+' · '+A.bulunur+'</td></tr>'+
+        '<tr><td>Değer</td><td>🪙 '+R.deger.toLocaleString('tr-TR')+'</td></tr>'+
+        '<tr><td>Hasar</td><td>'+R.hasar+'</td></tr>'+
+        '<tr><td>Ağırlık</td><td>'+R.gr+' g</td></tr>'+
+        '<tr><td>Keskinlik</td><td>'+R.keskin+'</td></tr>'+
+        '<tr><td>Sağlamlık</td><td>'+R.saglam+'</td></tr>'+
+        '<tr><td>Kırılma riski</td><td style="color:'+(R.risk<=6?'#8fe07a':R.risk<=12?'#ffd54a':'#ff6a5a')+'">%'+R.risk+' / 100 vuruş</td></tr>'+
+        '<tr><td>Özellikler</td><td>'+(R.traits.join(', ')||'—')+'</td></tr>'+
+        '<tr><td colspan="2" style="padding-top:6px;color:#6b5a48">ISIT '+Math.round(sc.heat*100)+' · DÖV '+Math.round(sc.forge*100)+
+          ' · SOĞUT '+Math.round(sc.quench*100)+' · BİLE '+Math.round(sc.grind*100)+' → Performans '+Math.round(R.perf*100)+'</td></tr>'+
+        '</table>');
+      if(!N.ad){
+        $('wnameok').onclick=function(){
+          var v=$('wname').value.trim()||N.oneri;
+          $('wname').parentNode.outerHTML='<div class="wname" style="color:'+t[1]+'">«'+v.replace(/[<>&"]/g,'')+'»</div>';
+          entry.ad='«'+v.replace(/[<>&"]/g,'')+'»'; INV.msg='🎒 <b>'+entry.ad+'</b> envantere eklendi.'; saveInv(); renderInv();
+          burst(90,110,40,['#ff4fa0','#ffc83a','#fff6d8'],90,40,1.2);
+        };
+      }
+      setBar([{btns:[{t:'🔁 Tekrar dök',go:true,fn:function(){go(0);}}]}]);
+    },
+    draw:function(){
+      g.drawImage(room,0,0);
+      g.fillStyle='rgba(10,5,3,.6)'; g.fillRect(0,0,W,H);
+      var col=TIERS[P.k][1];
+      g.globalAlpha=P.revealed?.35:.2; g.fillStyle=col;
+      for(var i=0;i<10;i++){
+        var a=P.rays+i*Math.PI/5;
+        g.beginPath(); g.moveTo(90,105);
+        g.lineTo(90+Math.cos(a)*140,105+Math.sin(a)*140);
+        g.lineTo(90+Math.cos(a+.18)*140,105+Math.sin(a+.18)*140); g.fill();
+      }
+      g.globalAlpha=1;
+      var lift=P.revealed?0:Math.sin(T*6)*1.5;
+      // bu silahın kendi biçimi, malzemesi, deseni ve takılan kabzası/sapı; kılıçlar boylarına göre ortalanır
+      var sb=WS(), ro={glow:col,gem:col}, ry=150;
+      if(sb.kind==='blade'){var GL=partGeo(sb,1).L; ro.scale=1.15; ry=105+(GL-34)*1.15/2;}
+      else if(sb.kind==='axe'){ro.len=58;ry=136;} // balta sapı kısa, mızrak sapı uzun
+      else ro.len=92;
+      drawWeaponAt(90,ry+lift,0,gripStyle(S.A.st,S.grip),ro);
+      if(S.A.n.mitril && Math.random()<.15*S.A.n.mitril){ // mitril ışıltısı
+        parts.push({x:86+Math.random()*8,y:40+Math.random()*92,vx:0,vy:-6,life:.6,max:.6,col:Math.random()<.5?'#e6ffff':'#a8f0f4',sz:1,grav:0});
+      }
+      if(!P.revealed){
+        g.font='bold 9px monospace'; g.textAlign='center'; g.fillStyle=col;
+        g.fillText(TIERS[P.k][0],90,222);
+      }
+    }
+  };
+
+  // ---------- akış ----------
+  function go(n){
+    S.phase=n; parts=[]; labels=[];
+    if(n===0){S.scores={};S.extra={};S.grip=null;$('cap').style.color='';}
+    setSteps(); PH[n].enter();
+    $('inv').style.display=(n===0||n===7)?'':'none'; renderInv(); // envanter malzeme ve sonuç ekranında görünür
+  }
+  // envanter düğmeleri: silahı erit / başlangıç stoğuna dön
+  $('inv').addEventListener('click',function(e){
+    var b=e.target.closest('[data-melt]');
+    if(b){meltWeapon(+b.getAttribute('data-melt'));return;}
+    if(e.target.id==='invreset'){
+      INV={ores:Object.assign({},START_ORES),weapons:INV.weapons}; INV.msg='↺ Cevherler başlangıç stoğuna döndü (silahlar duruyor).'; saveInv();
+      if(S.phase===0){fixSlots();PH[0].ui();} renderInv();
+    }
+  });
+
+  // ---------- giriş ----------
+  function pos(e){var r=cv.getBoundingClientRect();return {x:(e.clientX-r.left)/r.width*W,y:(e.clientY-r.top)/r.height*H};}
+  cv.addEventListener('pointerdown',function(e){
+    e.preventDefault(); try{cv.setPointerCapture(e.pointerId);}catch(_){}
+    var p=pos(e); ptr.down=true; ptr.x=p.x; ptr.y=p.y;
+    var h=PH[S.phase]; if(h.down) h.down(p.x,p.y);
+  });
+  cv.addEventListener('pointermove',function(e){
+    var p=pos(e); ptr.x=p.x; ptr.y=p.y;
+    var h=PH[S.phase]; if(ptr.down && h.move) h.move(p.x,p.y);
+  });
+  function release(){ptr.down=false;var h=PH[S.phase];if(h.up)h.up();}
+  cv.addEventListener('pointerup',release);
+  cv.addEventListener('pointercancel',release);
+  window.addEventListener('keydown',function(e){if(e.code==='Space'&&S.phase===1){e.preventDefault();ptr.down=true;}});
+  window.addEventListener('keyup',function(e){if(e.code==='Space'&&S.phase===1){ptr.down=false;}});
+
+  // ---------- döngü ----------
+  var last=performance.now();
+  function frame(now){
+    var dt=Math.min(.05,Math.max(0,(now-last)/1000)); last=now; T+=dt;
+    try{
+      var h=PH[S.phase];
+      if(h.update) h.update(dt);
+      if(P.done && P.endIn!==undefined){P.endIn-=dt; if(P.endIn<=0){var nx=P.next;P.endIn=undefined;go(nx);}}
+      updFx(dt);
+      PH[S.phase].draw(); drawFx(); // geçişten sonra yeni adımın çizimi
+    }catch(err){console.error(err);}
+    requestAnimationFrame(frame);
+  }
+  go(0);
+  requestAnimationFrame(frame);
 })();
 </script>
+</body>
+</html>
