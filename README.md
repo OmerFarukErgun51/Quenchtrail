@@ -20,4 +20,4 @@ Android için 2D pixel art mobil **demircilik RPG** oyunu. Oyuncu bir usta demir
 
 ## ▶️ Devam etmek için
 
-Diğer bilgisayarda bu repoyu klonla, `docs/TASARIM-KARARLARI.md`'yi oku, oradan kaldığın yerden devam et. Sırada **demircilik akışının geri kalan adımlarının** (ISIT/DÖV/SOĞUT detayları) netleştirilmesi var.
+Diğer bilgisayarda bu repoyu klonla, `docs/TASARIM-KARARLARI.md`'yi oku, oradan kaldığın yerden devam et. Demircilik akışı, dükkân, gün döngüsü ve ilerleme tasarımı oturdu. Sırada **dövme mockup'ının yeni akışa göre güncellenmesi** ve **ekonomi dengesi** (fiyatlar, malzeme maliyetleri) var.
